@@ -2,9 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/Cipher_AI.png" id="favicon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>CipherAI</title>
+    <script>
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.drawImage(img, 0, 0, 32, 32);
+        document.getElementById('favicon').href = canvas.toDataURL('image/png');
+      };
+      img.src = '/Cipher_AI.png';
+    </script>
   </head>
   <body>
     <div id="root"></div>
