@@ -76,6 +76,32 @@ router.put('/resume', upload.single('resume'), async (req: Request, res: Respons
   }
 });
 
+// GET /api/user/:userId/resume-suggestions — re-run Gemini on stored resume
+router.get('/:userId/resume-suggestions', async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId).select('resumeGcsKey');
+    if (!user) { res.status(404).json({ message: 'User not found' }); return; }
+    if (!user.resumeGcsKey) { res.status(404).json({ message: 'No resume on file' }); return; }
+
+    const [buffer] = await bucket.file(user.resumeGcsKey).download();
+
+    let suggestedGoals: string[] = [];
+    const geminiResult = await geminiModel.generateContent([
+      { inlineData: { data: buffer.toString('base64'), mimeType: 'application/pdf' } },
+      `You are an expert interview coach. Analyse this resume and suggest 4–6 specific interview practice topics tailored to this candidate's background, skills, and experience level. Topics should be concise (2–4 words) and directly relevant to the person's career (e.g. "System Design", "Product Analytics", "Cross-team Collaboration", "Python Development"). Return ONLY a valid JSON array of strings, no extra text.`,
+    ]);
+    const raw = geminiResult.response.text().trim();
+    const match = raw.match(/\[[\s\S]*?\]/);
+    if (match) suggestedGoals = (JSON.parse(match[0]) as string[]).slice(0, 6);
+
+    res.json({ suggestedGoals });
+  } catch (err) {
+    console.error('Resume suggestions error:', err);
+    res.status(500).json({ message: 'Failed to generate suggestions' });
+  }
+});
+
 // GET /api/user/:userId/profile
 router.get('/:userId/profile', async (req: Request, res: Response) => {
   const { userId } = req.params;

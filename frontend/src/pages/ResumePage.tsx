@@ -1,32 +1,55 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
+type Status = 'checking' | 'idle' | 'uploading' | 'analysing' | 'error';
 
 export default function ResumePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
-  const [status, setStatus] = useState<UploadStatus>('idle');
+  const [status, setStatus] = useState<Status>('checking');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const storedUser = localStorage.getItem('user');
+  const userId: string = storedUser ? JSON.parse(storedUser).id : '';
+
+  // On mount: check whether the user already has a resume
+  useEffect(() => {
+    if (!userId) { setStatus('idle'); return; }
+
+    (async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/user/${userId}/profile`);
+        const data = await res.json() as { hasResume?: boolean };
+
+        if (data.hasResume) {
+          // Resume already on file — fetch AI suggestions and skip ahead
+          setStatus('analysing');
+          const sugRes = await fetch(`${backendUrl}/api/user/${userId}/resume-suggestions`);
+          const sugData = await sugRes.json() as { suggestedGoals?: string[] };
+          navigate('/topics', { state: { suggestedGoals: sugData.suggestedGoals ?? [] }, replace: true });
+        } else {
+          setStatus('idle');
+        }
+      } catch {
+        // Fall back to showing the upload UI
+        setStatus('idle');
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    setFile(f);
+    setFile(e.target.files?.[0] ?? null);
     setStatus('idle');
     setErrorMsg('');
   };
 
   const handleUpload = async () => {
-    if (!file) return;
-    const storedUser = localStorage.getItem('user');
-    const userId: string = storedUser ? JSON.parse(storedUser).id : '';
-    if (!userId) { setErrorMsg('Not logged in'); return; }
-
+    if (!file || !userId) return;
     setStatus('uploading');
     setErrorMsg('');
 
@@ -35,15 +58,10 @@ export default function ResumePage() {
       form.append('resume', file);
       form.append('userId', userId);
 
-      const res = await fetch(`${backendUrl}/api/user/resume`, {
-        method: 'PUT',
-        body: form,
-      });
-
+      const res = await fetch(`${backendUrl}/api/user/resume`, { method: 'PUT', body: form });
       const data = await res.json() as { suggestedGoals?: string[]; message?: string };
       if (!res.ok) throw new Error(data.message ?? `Upload failed (${res.status})`);
 
-      setStatus('done');
       navigate('/topics', { state: { suggestedGoals: data.suggestedGoals ?? [] } });
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Upload failed');
@@ -52,6 +70,20 @@ export default function ResumePage() {
   };
 
   const handleSkip = () => navigate('/topics', { state: { suggestedGoals: [] } });
+
+  // Loading states while checking / analysing existing resume
+  if (status === 'checking' || status === 'analysing') {
+    return (
+      <div className="steps-page">
+        <nav className="page-nav"><Logo /></nav>
+        <main className="steps-main">
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
+            {status === 'checking' ? 'Checking your profile…' : 'Analysing your resume…'}
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="steps-page">
@@ -114,11 +146,7 @@ export default function ResumePage() {
 
             <button
               className="btn-proceed"
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: 'rgba(255,255,255,0.5)',
-              }}
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)' }}
               onClick={handleSkip}
               disabled={status === 'uploading'}
             >
