@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import RobotEmoji from '../components/RobotEmoji';
 import Logo from '../components/Logo';
@@ -15,6 +18,14 @@ const GoogleIcon = () => (
 export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn, loading, error } = useGoogleAuth();
+
+  // If Firebase already has a valid session, skip the login page
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, user => {
+      if (user) navigate('/profile', { replace: true });
+    });
+    return unsub;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const noAccount = error?.includes('No account');
 

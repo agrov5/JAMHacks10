@@ -7,7 +7,7 @@ export interface IUser extends Document {
   allowAI: boolean;
   username: string;
   resumeGcsKey?: string;
-  location?: string;
+  location?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

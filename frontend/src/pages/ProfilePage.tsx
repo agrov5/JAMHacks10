@@ -137,7 +137,7 @@ export default function ProfilePage() {
             <p style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.2px' }}>Ready to practice?</p>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Start a new interview session with AI-generated questions</p>
           </div>
-          <button className="btn-proceed" onClick={() => navigate('/next-steps')}>
+          <button className="btn-proceed" onClick={() => navigate('/resume')}>
             Start Practice
           </button>
         </div>
@@ -282,7 +282,7 @@ export default function ProfilePage() {
                     </p>
                   )}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                    {s.goals.length > 0 && (
+                    {s.goals.length === 1 && (
                       <button
                         className="btn-proceed"
                         style={{ fontSize: 11, padding: '5px 12px', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)', color: '#FFD700' }}

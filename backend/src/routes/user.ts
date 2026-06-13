@@ -155,7 +155,7 @@ router.patch('/:userId', async (req: Request, res: Response) => {
   try {
     const user = await User.findById(userId);
     if (!user) { res.status(404).json({ message: 'User not found' }); return; }
-    if (location !== undefined) user.location = location.trim() || undefined;
+    if (location !== undefined) user.location = location.trim() || null;
     await user.save();
     res.json({ location: user.location ?? null });
   } catch (err) {
