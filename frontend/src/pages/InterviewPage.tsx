@@ -19,12 +19,17 @@ export default function InterviewPage() {
   const chunksRef   = useRef<Blob[]>([]);
   const mimeTypeRef = useRef<string>('');
 
-  const [camActive, setCamActive] = useState(false);
-  const [status, setStatus]       = useState<Status>('idle');
-  const [errorMsg, setErrorMsg]   = useState('');
-  const [questionNum]             = useState(1);
+  const [camActive, setCamActive]   = useState(false);
+  const [camError, setCamError]     = useState('');
+  const [status, setStatus]         = useState<Status>('idle');
+  const [errorMsg, setErrorMsg]     = useState('');
+  const [questionNum]               = useState(1);
 
   useEffect(() => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCamError('Camera API not available (requires HTTPS)');
+      return;
+    }
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then(stream => {
@@ -35,7 +40,11 @@ export default function InterviewPage() {
         }
         setCamActive(true);
       })
-      .catch(() => setCamActive(false));
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        setCamError(msg);
+        setCamActive(false);
+      });
 
     return () => streamRef.current?.getTracks().forEach(t => t.stop());
   }, []);
@@ -151,6 +160,7 @@ export default function InterviewPage() {
             <div className="webcam-off">
               <span className="webcam-off-icon">📷</span>
               <span>Camera unavailable</span>
+              {camError && <span style={{ fontSize: 11, color: 'rgba(255,100,100,0.7)', maxWidth: 280, textAlign: 'center' }}>{camError}</span>}
             </div>
           )}
           {status === 'recording' && (
