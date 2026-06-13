@@ -28,6 +28,10 @@ body {
 
 /* ── Logo ── */
 .logo {
+  position: fixed;
+  top: 24px;
+  left: 32px;
+  z-index: 100;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -321,9 +325,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 /* ── Topics Page ── */
