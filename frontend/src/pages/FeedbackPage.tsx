@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import Logo from '../components/Logo';
 
 export default function FeedbackPage() {
@@ -49,8 +50,8 @@ export default function FeedbackPage() {
           <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
             AI Analysis
           </p>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-            {feedback || 'No feedback available.'}
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.8 }}>
+            <ReactMarkdown>{feedback || 'No feedback available.'}</ReactMarkdown>
           </div>
         </section>
 
