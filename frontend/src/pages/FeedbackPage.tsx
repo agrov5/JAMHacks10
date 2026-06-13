@@ -78,7 +78,15 @@ export default function FeedbackPage() {
             href={videoUrl}
             target="_blank"
             rel="noreferrer"
-            style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', alignSelf: 'flex-start' }}
+            className="btn-proceed"
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: 'rgba(255,255,255,0.6)',
+              textDecoration: 'underline',
+              textDecorationColor: 'rgba(255,255,255,0.25)',
+              alignSelf: 'flex-start',
+            }}
           >
             🎬 View recording
           </a>

@@ -29,8 +29,8 @@ body {
 /* ── Logo ── */
 .logo {
   position: fixed;
-  top: 24px;
-  left: 32px;
+  top: 16px;
+  left: 24px;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -40,6 +40,9 @@ body {
   color: #fff;
   letter-spacing: -0.2px;
   text-decoration: none;
+  background: #0a0a0a;
+  padding: 7px 12px;
+  border-radius: 10px;
 }
 
 /* ── Buttons ── */
