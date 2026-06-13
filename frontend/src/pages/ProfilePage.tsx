@@ -108,7 +108,7 @@ export default function ProfilePage() {
         <Logo />
         <button
           className="btn-proceed"
-          style={{ fontSize: 12, padding: '8px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
+          style={{ fontSize: 12, padding: '8px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', marginLeft: 'auto' }}
           onClick={() => navigate('/next-steps')}
         >
           Practice
