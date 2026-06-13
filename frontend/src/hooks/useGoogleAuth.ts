@@ -4,6 +4,15 @@ import { auth } from '../firebase';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
+async function parseResponse(res: Response): Promise<unknown> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Server returned unexpected response (${res.status}): ${text.slice(0, 120)}`);
+  }
+}
+
 export function useGoogleAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,14 +31,14 @@ export function useGoogleAuth() {
         body: JSON.stringify({ idToken }),
       });
 
+      const data = await parseResponse(response) as Record<string, string>;
+
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Authentication failed');
+        throw new Error(data.message || `Request failed (${response.status})`);
       }
 
-      const userData = await response.json();
-      localStorage.setItem('user', JSON.stringify(userData));
-      onSuccess?.(userData);
+      localStorage.setItem('user', JSON.stringify(data));
+      onSuccess?.(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {

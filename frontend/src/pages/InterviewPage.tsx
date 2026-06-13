@@ -73,12 +73,17 @@ export default function InterviewPage() {
         body: form,
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message ?? 'Upload failed');
+      const text = await res.text();
+      let data: Record<string, string>;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server error (${res.status}): ${text.slice(0, 120)}`);
       }
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message ?? `Request failed (${res.status})`);
+      }
       setGcsUrl(data.videoUrl ?? '');
       setTranscript(data.transcript ?? '');
       setStatus('done');
