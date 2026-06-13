@@ -21,11 +21,11 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-form-side">
         <nav className="page-nav">
-          <span className="logo">Cipher.AI <RobotEmoji size={18} /></span>
+          <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
         </nav>
 
         <div className="auth-form-inner">
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 12 }}>
             <h1 className="auth-heading">Welcome Back!</h1>
             <p className="auth-subheading">Sign in with your Google account to continue</p>
           </div>

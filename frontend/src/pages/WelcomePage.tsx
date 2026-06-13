@@ -29,7 +29,7 @@ export default function WelcomePage() {
   return (
     <div className="welcome-page">
       <nav>
-        <span className="logo">Cipher.AI <RobotEmoji size={20} /></span>
+        <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
       </nav>
 
       <main className="welcome-main">
