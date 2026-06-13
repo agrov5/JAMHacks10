@@ -6,11 +6,6 @@ import { User } from '../models/User';
 import { Session } from '../models/Session';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const AVAILABLE_TOPICS = [
-  'Teamwork', 'Problem Solving', 'Adaptability',
-  'Communication', 'Leadership', 'Project Management',
-];
-
 const router = Router();
 
 const sa = getServiceAccount();
@@ -50,7 +45,7 @@ router.put('/resume', upload.single('resume'), async (req: Request, res: Respons
       metadata: { contentType: req.file.mimetype || 'application/pdf' },
     });
 
-    // Ask Gemini to suggest relevant topics based on resume content
+    // Ask Gemini to suggest topics specific to this candidate's resume
     let suggestedGoals: string[] = [];
     try {
       const geminiResult = await geminiModel.generateContent([
@@ -60,13 +55,12 @@ router.put('/resume', upload.single('resume'), async (req: Request, res: Respons
             mimeType: 'application/pdf',
           },
         },
-        `You are an interview coach. Based on this resume, suggest up to 3 interview practice topics from this exact list: ${AVAILABLE_TOPICS.join(', ')}. Return ONLY a JSON array, e.g. ["Teamwork","Leadership"]. Only include topics from the list.`,
+        `You are an expert interview coach. Analyse this resume and suggest 4–6 specific interview practice topics tailored to this candidate's background, skills, and experience level. Topics should be concise (2–4 words) and directly relevant to the person's career (e.g. "System Design", "Product Analytics", "Cross-team Collaboration", "Python Development"). Return ONLY a valid JSON array of strings, no extra text. Example: ["System Design","Python Development","Cross-team Collaboration"]`,
       ]);
       const raw = geminiResult.response.text().trim();
       const match = raw.match(/\[[\s\S]*?\]/);
       if (match) {
-        const parsed = JSON.parse(match[0]) as string[];
-        suggestedGoals = parsed.filter(t => AVAILABLE_TOPICS.includes(t)).slice(0, 3);
+        suggestedGoals = (JSON.parse(match[0]) as string[]).slice(0, 6);
       }
     } catch {
       // Non-critical — user can still pick topics manually

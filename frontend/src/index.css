@@ -692,8 +692,156 @@ body {
   color: rgba(255,255,255,0.5);
 }
 
+/* ── Profile Practice CTA ── */
+.profile-practice-cta {
+  background: #fff;
+  color: #0a0a0a;
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.profile-practice-cta .btn-proceed {
+  background: #0a0a0a;
+  color: #fff;
+  flex-shrink: 0;
+}
+.profile-practice-cta .btn-proceed:hover { opacity: 0.8; }
+
+/* ── Interview Setup Page ── */
+.setup-card {
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setup-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+}
+
+.setup-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.setup-pill {
+  background: #1a1a1a;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.setup-pill:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+.setup-pill.selected { background: #fff; color: #0a0a0a; border-color: #fff; }
+
+.setup-summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  padding-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Feedback per-question cards ── */
+.feedback-question-card {
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.feedback-question-header {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.feedback-question-header:hover { background: rgba(255,255,255,0.03); }
+
+.feedback-q-num {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.3);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.feedback-q-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.8);
+  flex: 1;
+  line-height: 1.5;
+}
+
+.feedback-chevron {
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.feedback-question-body {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 20px;
+}
+
+.feedback-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+}
+
 @media (max-width: 640px) {
   .profile-page { padding: 20px 20px 28px; }
   .profile-stats-row { flex-direction: column; }
   .steps-row { flex-direction: column; }
+  .setup-card { padding: 20px; }
+  .profile-practice-cta { flex-direction: column; align-items: flex-start; }
 }

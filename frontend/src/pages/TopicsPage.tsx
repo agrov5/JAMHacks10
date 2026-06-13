@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../components/Logo';
 
-const TOPICS = [
+const STANDARD_TOPICS = [
   'Teamwork',
   'Problem Solving',
   'Adaptability',
@@ -16,7 +16,11 @@ export default function TopicsPage() {
   const location = useLocation();
   const suggestedGoals: string[] = location.state?.suggestedGoals ?? [];
 
+  // Pre-select AI suggestions (up to 3), deduplicated against standard list
   const [selected, setSelected] = useState<string[]>(suggestedGoals.slice(0, 3));
+
+  // Standard topics not already in AI suggestions
+  const remainingStandard = STANDARD_TOPICS.filter(t => !suggestedGoals.includes(t));
 
   const toggle = (topic: string) => {
     setSelected(prev =>
@@ -39,24 +43,50 @@ export default function TopicsPage() {
           <h1 className="topics-heading">Choose Up To 3 Topics</h1>
           <p className="topics-sub" style={{ marginTop: 8 }}>
             {suggestedGoals.length > 0
-              ? 'We pre-selected these based on your resume — adjust as you like'
-              : 'We\'ll tailor your interview questions around these'}
+              ? 'AI picked these from your resume — adjust as you like'
+              : "We'll tailor your questions around these"}
           </p>
         </div>
 
-        <div className="topics-grid">
-          {TOPICS.map(topic => (
-            <button
-              key={topic}
-              className={`topic-pill${selected.includes(topic) ? ' selected' : ''}${suggestedGoals.includes(topic) && !selected.includes(topic) ? ' suggested' : ''}`}
-              onClick={() => toggle(topic)}
-            >
-              {topic}
-              {suggestedGoals.includes(topic) && (
-                <span className="topic-suggested-badge">AI</span>
-              )}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', maxWidth: 560 }}>
+          {suggestedGoals.length > 0 && (
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>
+                AI Suggested · from your resume
+              </p>
+              <div className="topics-grid" style={{ justifyContent: 'flex-start' }}>
+                {suggestedGoals.map(topic => (
+                  <button
+                    key={topic}
+                    className={`topic-pill${selected.includes(topic) ? ' selected' : ''}`}
+                    onClick={() => toggle(topic)}
+                  >
+                    {topic}
+                    <span className="topic-suggested-badge">AI</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            {suggestedGoals.length > 0 && (
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>
+                Standard Topics
+              </p>
+            )}
+            <div className="topics-grid" style={{ justifyContent: 'flex-start' }}>
+              {remainingStandard.map(topic => (
+                <button
+                  key={topic}
+                  className={`topic-pill${selected.includes(topic) ? ' selected' : ''}`}
+                  onClick={() => toggle(topic)}
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)' }}>
@@ -68,9 +98,9 @@ export default function TopicsPage() {
         <button
           className="btn-proceed"
           disabled={selected.length === 0}
-          onClick={() => navigate('/interview', { state: { topics: selected } })}
+          onClick={() => navigate('/interview-setup', { state: { topics: selected } })}
         >
-          Start Interview
+          Continue
         </button>
       </div>
     </div>

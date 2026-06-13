@@ -106,16 +106,20 @@ export default function ProfilePage() {
     <div className="profile-page">
       <nav className="page-nav">
         <Logo />
-        <button
-          className="btn-proceed"
-          style={{ fontSize: 12, padding: '8px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
-          onClick={() => navigate('/next-steps')}
-        >
-          Practice
-        </button>
       </nav>
 
       <main className="profile-main">
+        {/* Practice CTA */}
+        <div className="profile-practice-cta">
+          <div>
+            <p style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.2px' }}>Ready to practice?</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Start a new interview session with AI-generated questions</p>
+          </div>
+          <button className="btn-proceed" onClick={() => navigate('/next-steps')}>
+            Start Practice
+          </button>
+        </div>
+
         {/* User info */}
         <div className="profile-section">
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
