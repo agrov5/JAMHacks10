@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher.AI Workspace</title>
+    <style>
+        /* Dark Theme Variables */
+        :root {
+            --bg-screen: #121212;
+            --bg-panel: #1e1e1e;
+            --bg-light-panel: #2a2a2a;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: #333333;
+            --border-highlight: #ffffff;
+            --font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+            --error-red: #ff4d4d;
+            --accent-green: #00ff66;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-screen);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Screen Transitions */
+        .view-layer {
+            position: absolute;
+            inset: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            z-index: 1;
+        }
+        
+        .view-layer.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            z-index: 2;
+        }
+
+        /* Brand Layout */
+        .brand-logo {
+            font-weight: bold;
+            font-size: 24px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+
+        /* Buttons */
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--border-highlight);
+            border-radius: 12px;
+            padding: 12px 40px;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease, opacity 0.3s ease;
+        }
+        .btn-outline:hover:not(:disabled) {
+            background: rgba(255,255,255,0.08);
+            transform: scale(1.02);
+        }
+        .btn-outline:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        /* ================= ROBOT MASCOT STYLING & ACTIONS ================= */
+        .mascot-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+        .svg-robot {
+            transition: transform 0.3s ease;
+        }
+        /* Base Floating idle state */
+        .svg-robot.idle {
+            animation: float 3s ease-in-out infinite;
+        }
+        /* Reactive Animation Classes */
+        .svg-robot.bounce {
+            animation: robotBounce 0.2s ease-out;
+        }
+        .svg-robot.keystroke-twitch {
+            animation: robotTwitch 0.1s ease-in-out;
+        }
+        .robot-hand-left, .robot-hand-right {
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* Move hands over eyes when class applied */
+        .svg-robot.covering-eyes .robot-hand-left {
+            transform: translate(16px, -22px);
+        }
+        .svg-robot.covering-eyes .robot-hand-right {
+            transform: translate(-16px, -22px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes robotBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1) translateY(-6px); }
+        }
+        @keyframes robotTwitch {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(3deg) scale(1.02); }
+        }
+
+        .speech-bubble {
+            background: var(--text-main);
+            color: var(--bg-screen);
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 15px;
+            position: relative;
+            max-width: 280px;
+            line-height: 1.4;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 8px 10px 8px 0;
+            border-style: solid;
+            border-color: transparent var(--text-main) transparent transparent;
+        }
+
+        /* ================= SCREEN 1: LANDING ================= */
+        #screen-1 .center-text {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .cursor {
+            display: inline-block;
+            width: 4px;
+            height: 48px;
+            background-color: var(--text-main);
+            margin-left: 6px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            padding-bottom: 20px;
+        }
+
+        /* ================= SCREEN 2 & 3: FORMS ================= */
+        .split-layout { display: flex; height: calc(100vh - 80px); }
+        .form-side { width: 45%; padding: 40px 60px; display: flex; flex-direction: column; justify-content: center; }
+        .media-side { width: 55%; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 14px; margin-bottom: 8px; color: var(--text-muted); }
+        .input-box { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); background-color: transparent; color: white; font-family: inherit; font-size: 16px; }
+        .input-box:focus { outline: none; border-color: var(--border-highlight); }
+        .btn-solid-white { background: white; color: black; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 16px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
+
+        /* ================= SCREEN 4: STEPS ================= */
+        .steps-wrapper { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .steps-row { display: flex; justify-content: center; gap: 60px; margin-top: 60px; width: 80%; }
+        .step-item { flex: 1; font-size: 20px; line-height: 1.5; }
+
+        /* ================= SCREEN 5: TOPICS ================= */
+        .topics-wrapper { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .circle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 50px; }
+        .topic-circle { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--border-highlight); background: transparent; color: var(--text-main); display: flex; justify-content: center; align-items: center; text-align: center; font-family: inherit; font-size: 18px; cursor: pointer; transition: all 0.2s ease; }
+        .topic-circle.selected { background: var(--text-main); color: var(--bg-screen); transform: scale(1.08); font-weight: bold; }
+        .warning-text { color: var(--error-red); margin-top: 40px; font-size: 18px; font-weight: bold; height: 24px; transition: opacity 0.3s; }
+
+        /* ================= SCREEN 6: REDESIGNED SLEEK DASHBOARD ================= */
+        .dash-container {
+            display: flex;
+            gap: 30px;
+            flex-grow: 1;
+            margin-top: 30px;
+            height: calc(100% - 80px);
+        }
+        
+        /* Left Column Workspace */
+        .dash-workspace {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pane-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .prompt-header {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .video-box-container {
+            flex-grow: 1;
+            background-color: #0b0b0b;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Mock Camera Stream Overlay */
+        .camera-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .rec-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--error-red);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        /* Right Column Analysis Panel */
+        .dash-analysis-panel {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .critique-placeholder {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            text-align: center;
+            gap: 15px;
+        }
+
+        /* Processing/Console logs wrapper */
+        .diagnostic-log {
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--accent-green);
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .critique-content {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div id="shared-robot-template" style="display:none;">
+        <svg class="svg-robot idle" viewBox="0 0 100 100" width="100" height="100">
+            <rect x="35" y="80" width="10" height="12" rx="4" fill="#e0e0e0" />
+            <rect x="55" y="80" width="10" height="12" rx="4" fill="#e0e0e0" />
+            <circle class="robot-hand-left" cx="16" cy="55" r="7" fill="#e0e0e0" />
+            <circle class="robot-hand-right" cx="84" cy="55" r="7" fill="#e0e0e0" />
+            <circle cx="50" cy="14" r="6" fill="#e0e0e0" />
+            <line x1="50" y1="20" x2="50" y2="26" stroke="#e0e0e0" stroke-width="3" />
+            <path d="M 22 45 C 22 18, 78 18, 78 45 C 78 72, 22 72, 22 45 Z" fill="#e0e0e0" />
+            <path d="M 30 46 C 30 27, 70 27, 70 46 C 70 63, 30 63, 30 46 Z" fill="#121212" />
+            <ellipse cx="42" cy="43" rx="4" ry="6" fill="#ffffff" />
+            <ellipse cx="58" cy="43" rx="4" ry="6" fill="#ffffff" />
+            <path d="M 46 53 Q 50 56 54 53" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
+        </svg>
+    </div>
+
+    <div id="screen-1" class="view-layer active">
+        <div class="brand-logo">Cipher.AI</div>
+        <div class="center-text"><span id="typewriter-text"></span><span class="cursor"></span></div>
+        <div class="bottom-bar">
+            <div class="mascot-container" id="landing-mascot-container">
+                <div class="speech-bubble" id="bubble-screen-1">Systems offline... Standing by for initiation payload!</div>
+            </div>
+            <button class="btn-outline" onclick="navigate('screen-2')">Enter</button>
+            <div style="width: 200px;"></div>
+        </div>
+    </div>
+
+    <div id="screen-2" class="view-layer">
+        <div class="split-layout">
+            <div class="form-side">
+                <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+                <div style="margin-top: 40px;">
+                    <h2 style="margin-bottom: 25px; font-size: 28px;">Welcome Back!</h2>
+                    <div class="input-group">
+                        <label>Email address</label>
+                        <input type="email" class="input-box" oninput="robotLiveTypeReaction(this)" placeholder="Enter account registry...">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" class="input-box" oninput="robotLiveTypeReaction(this)" onfocus="setRobotCoverEyes(this, true)" onblur="setRobotCoverEyes(this, false)" placeholder="••••••••">
+                    </div>
+                    <button class="btn-outline" style="width:100%; background:white; color:black;" onclick="navigate('screen-4')">Sign In</button>
+                    <button class="btn-solid-white" onclick="navigate('screen-4')"><b>G</b> Sign in with Google</button>
+                    <p style="font-size: 13px; text-align: center; margin-top: 20px; color: var(--text-muted);">
+                        Don't Have An Account? <span style="color: white; cursor: pointer; text-decoration: underline;" onclick="navigate('screen-3')">Sign Up</span>
+                    </p>
+                </div>
+            </div>
+            <div class="media-side" id="login-mascot-side">
+                <div class="speech-bubble" id="bubble-screen-2">Identity match protocol engaged. Go ahead, type it in—I won't look at your password, promise!</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-3" class="view-layer">
+        <div class="split-layout">
+            <div class="form-side">
+                <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+                <div style="margin-top: 40px;">
+                    <h2 style="margin-bottom: 25px; font-size: 28px;">Create Account</h2>
+                    <div class="input-group">
+                        <label>Email address</label>
+                        <input type="email" class="input-box" oninput="robotLiveTypeReaction(this)" placeholder="Assign new address...">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" class="input-box" oninput="robotLiveTypeReaction(this)" onfocus="setRobotCoverEyes(this, true)" onblur="setRobotCoverEyes(this, false)" placeholder="Create strong security string...">
+                    </div>
+                    <button class="btn-outline" style="width:100%; background:white; color:black;" onclick="navigate('screen-4')">Register</button>
+                    <p style="font-size: 13px; text-align: center; margin-top: 20px; color: var(--text-muted);">
+                        Already have an account? <span style="color: white; cursor: pointer; text-decoration: underline;" onclick="navigate('screen-2')">Sign In</span>
+                    </p>
+                </div>
+            </div>
+            <div class="media-side" id="signup-mascot-side">
+                <div class="speech-bubble" id="bubble-screen-3">Setting up a new database entry? Make that password complex so hackers don't brick my core systems!</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-4" class="view-layer">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+            <div class="mascot-container" id="steps-mascot-container" style="gap:10px;">
+                <div class="speech-bubble" id="bubble-screen-4" style="font-size:13px; padding:8px 15px;">Here is our deployment roadmap. Simple, logical, clean!</div>
+            </div>
+        </div>
+        <div class="steps-wrapper">
+            <h2 style="font-size: 32px; margin-bottom: 10px;">The Next Steps</h2>
+            <div class="steps-row">
+                <div class="step-item"><strong>1.</strong> Decide topics</div>
+                <div class="step-item"><strong>2.</strong> Generate questions for you to respond to</div>
+                <div class="step-item"><strong>3.</strong> AI will examine and give critique</div>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end;"><button class="btn-outline" onclick="navigate('screen-5')">Proceed</button></div>
+    </div>
+
+    <div id="screen-5" class="view-layer">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+            <div class="mascot-container" id="topics-mascot-container" style="gap:10px;">
+                <div class="speech-bubble" id="bubble-screen-5" style="font-size:13px; padding:8px 15px;">Pick what parameters you want me to analyze your voice profile on!</div>
+            </div>
+        </div>
+        <div class="topics-wrapper">
+            <h2 style="font-size: 32px;">Choose Up To 3 topics</h2>
+            <div class="circle-grid">
+                <button class="topic-circle" onclick="toggleTopic(this)">Teamwork</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Problem<br>Solving</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Adaptability</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Communication</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Leadership</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Project<br>Management</button>
+            </div>
+            <div id="topics-warning" class="warning-text">Please select between 1 and 3 topics to proceed.</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end;"><button class="btn-outline" id="proceed-topics-btn" disabled onclick="navigate('screen-6')">Proceed</button></div>
+    </div>
+
+    <div id="screen-6" class="view-layer">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+            <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+            <div class="mascot-container" id="dash-mascot-container" style="gap:10px;">
+                <div class="speech-bubble" id="bubble-screen-6" style="font-size:12px; padding:6px 12px; max-width:240px;">Camera engine hot. Ready when you are!</div>
+            </div>
+            <div style="font-size: 14px; letter-spacing: 1px; color: var(--text-muted);">WORKSPACE // ACTIVE_SESSION</div>
+        </div>
+
+        <div class="dash-container">
+            <div class="dash-workspace">
+                <div class="pane-card">
+                    <div class="prompt-header">Generated Interview Focus Question</div>
+                    <p style="font-size: 18px; line-height: 1.4; color: #eaeaea;">
+                        "Can you walk me through a complex technical issue you encountered during a development phase and the precise logical workflow you used to diagnose and repair it?"
+                    </p>
+                </div>
+
+                <div class="video-box-container">
+                    <div class="camera-overlay">
+                        <div class="rec-dot"></div>
+                        <span>FEED_STREAM // MOCK_VIDEO_CAPTURE</span>
+                    </div>
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; color: #555;">
+                            <path d="M23 7l-7 5 7 5V7zM1 5h14v14H1V5z" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p style="font-size: 15px;">Video Capture Stream Engaged Successfully</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-muted); font-size: 13px;">System Check: Audio Input [OK] // Video Input [OK]</span>
+                    <button class="btn-outline" id="run-engine-btn" style="border-color: var(--border-highlight);" onclick="simulateAnalysis()">Run Analysis Engine</button>
+                </div>
+            </div>
+
+            <div class="dash-analysis-panel">
+                <div class="prompt-header" style="margin-bottom: 20px;">AI Analysis Matrix & Critique</div>
+                
+                <div class="critique-placeholder" id="analysis-wait-state">
+                    <p style="font-size: 15px;">Awaiting capture streaming payload completion.</p>
+                    <p style="font-size: 13px; color: var(--text-muted);">Click "Run Analysis Engine" to evaluate response delivery patterns.</p>
+                </div>
+
+                <div class="diagnostic-log" id="analysis-log-state">
+                    <div>> Initializing Deep Neural Parser...</div>
+                    <div>> Parsing localized speech frequency charts...</div>
+                    <div>> Correlating language anchors to designated focus areas...</div>
+                    <div>> Compiling structured critique metrics matrix...</div>
+                </div>
+
+                <div class="critique-content" id="analysis-results-state">
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px;">
+                        <div class="score-row">
+                            <span style="color: var(--text-muted);">Structural Delivery Accuracy</span>
+                            <span style="font-weight: bold; font-family: monospace; color: var(--accent-green);">92%</span>
+                        </div>
+                        <div class="score-row">
+                            <span style="color: var(--text-muted);">Strategic Problem Articulation</span>
+                            <span style="font-weight: bold; font-family: monospace; color: var(--accent-green);">88%</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+                        <div class="prompt-header" style="font-size:11px; color: var(--accent-green);">Core Actionable Advice</div>
+                        <p style="font-size: 15px; line-height: 1.5; color: #e0e0e0;">
+                            Your structure efficiently sets up the problem anchor. To strengthen your response further, ensure the technical diagnostic workflow minimizes vocal fillers during high-complexity transitions.
+                        </p>
+                    </div>
+
+                    <div style="margin-top: auto; text-align: center;">
+                        <span style="font-size:13px; text-decoration: underline; cursor:pointer; color: var(--text-muted);" onclick="navigate('screen-1')">Reset Application Session</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Universal Core Navigation System
+    function navigate(targetId) {
+        document.querySelectorAll('.view-layer').forEach(layer => {
+            layer.classList.remove('active');
+        });
+        
+        setTimeout(() => {
+            document.getElementById(targetId).classList.add('active');
+            injectRobotMascot(targetId);
+        }, 50);
+
+        if (targetId === 'screen-1') {
+            triggerHomeAnimations();
+        }
+    }
+
+    // Dynamic Mascot Placement Manager
+    function injectRobotMascot(targetId) {
+        const templateHTML = document.getElementById('shared-robot-template').innerHTML;
+        
+        // Target structural elements across layers
+        const landingContainer = document.getElementById('landing-mascot-container');
+        const loginSide = document.getElementById('login-mascot-side');
+        const signupSide = document.getElementById('signup-mascot-side');
+        const stepsContainer = document.getElementById('steps-mascot-container');
+        const topicsContainer = document.getElementById('topics-mascot-container');
+        const dashContainer = document.getElementById('dash-mascot-container');
+
+        // Clear containers safely
+        landingContainer.querySelector('.svg-robot')?.remove();
+        if(loginSide) loginSide.querySelector('.svg-robot')?.remove();
+        if(signupSide) signupSide.querySelector('.svg-robot')?.remove();
+        stepsContainer.querySelector('.svg-robot')?.remove();
+        topicsContainer.querySelector('.svg-robot')?.remove();
+        dashContainer.querySelector('.svg-robot')?.remove();
+
+        // Inject active instances into targeted views
+        if (targetId === 'screen-1') {
+            landingContainer.insertAdjacentHTML('afterbegin', templateHTML);
+        } else if (targetId === 'screen-2' && loginSide) {
+            loginSide.insertAdjacentHTML('afterbegin', templateHTML);
+        } else if (targetId === 'screen-3' && signupSide) {
+            signupSide.insertAdjacentHTML('afterbegin', templateHTML);
+        } else if (targetId === 'screen-4') {
+            stepsContainer.insertAdjacentHTML('afterbegin', templateHTML);
+        } else if (targetId === 'screen-5') {
+            topicsContainer.insertAdjacentHTML('afterbegin', templateHTML);
+        } else if (targetId === 'screen-6') {
+            dashContainer.insertAdjacentHTML('afterbegin', templateHTML);
+        }
+    }
+
+    // Mascot Live Keypress Feedback Action Layer
+    function robotLiveTypeReaction(inputElement) {
+        const layer = inputElement.closest('.view-layer');
+        const robot = layer.querySelector('.svg-robot');
+        if (!robot) return;
+
+        // Strip static floating idle animation instantly to prioritize tracking physics
+        robot.classList.remove('idle', 'keystroke-twitch');
+        
+        // Force reflow recalculation trigger to restart micro-twitch seamlessly
+        void robot.offsetWidth; 
+        robot.classList.add('keystroke-twitch');
+
+        // Dynamically update bubble dialogue based on context string size array values
+        const currentBubble = layer.querySelector('.speech-bubble');
+        if (currentBubble && inputElement.type !== 'password') {
+            if (inputElement.value.length > 5 && inputElement.value.length < 15) {
+                currentBubble.innerText = "Oh nice, typing speed is solid! Analyzing directory layout data...";
+            } else if (inputElement.value.length >= 15) {
+                currentBubble.innerText = "Perfect. That layout format looks completely clear inside my memory banks!";
+            }
+        }
+    }
+
+    // Mascot Action Layer: Secure Field Eye Cover Movement Trigger
+    function setRobotCoverEyes(inputElement, isFocusing) {
+        const layer = inputElement.closest('.view-layer');
+        const robot = layer.querySelector('.svg-robot');
+        const bubble = layer.querySelector('.speech-bubble');
+        if (!robot) return;
+
+        if (isFocusing) {
+            robot.classList.remove('idle', 'keystroke-twitch');
+            robot.classList.add('covering-eyes');
+            if(bubble) bubble.innerText = "Hands over eyes! Type your secure keys comfortably, my viewport sensors are dark.";
+        } else {
+            robot.classList.remove('covering-eyes');
+            robot.classList.add('idle');
+            if(bubble) bubble.innerText = "Alright, visibility protocols restored! Ready to connect account configuration.";
+        }
+    }
+
+    // Topic Limits Verification Configuration
+    let selectedTopicsCount = 0;
+    function toggleTopic(element) {
+        const layer = element.closest('.view-layer');
+        const robot = layer.querySelector('.svg-robot');
+        const bubble = document.getElementById('bubble-screen-5');
+
+        if (element.classList.contains('selected')) {
+            element.classList.remove('selected');
+            selectedTopicsCount--;
+            if (bubble) bubble.innerText = "Removed a metric focus anchor. Let's optimize parameters.";
+        } else {
+            if (selectedTopicsCount < 3) {
+                element.classList.add('selected');
+                selectedTopicsCount++;
+                
+                // Mascot Action Layer: Joyful bounce validation reaction feedback
+                if(robot) {
+                    robot.classList.remove('idle');
+                    robot.classList.add('bounce');
+                    setTimeout(() => robot.classList.add('idle'), 400);
+                }
+
+                // Dialouge update strings
+                if (bubble) {
+                    if(selectedTopicsCount === 1) bubble.innerText = "First topic lock acquired! Excellent vector choices.";
+                    if(selectedTopicsCount === 2) bubble.innerText = "Double focus tracking enabled. This analysis will be deep.";
+                    if(selectedTopicsCount === 3) bubble.innerText = "Maximum processing parameters selected! Prepare for runtime calculations.";
+                }
+            }
+        }
+        updateProceedButton();
+    }
+
+    function updateProceedButton() {
+        const proceedBtn = document.getElementById('proceed-topics-btn');
+        const warningText = document.getElementById('topics-warning');
+        
+        if (selectedTopicsCount >= 1 && selectedTopicsCount <= 3) {
+            proceedBtn.disabled = false;
+            warningText.style.opacity = '0';
+        } else {
+            proceedBtn.disabled = true;
+            warningText.style.opacity = '1';
+        }
+    }
+
+    // Dashboard Processing Stage Animation Sequence Simulations
+    function simulateAnalysis() {
+        const btn = document.getElementById('run-engine-btn');
+        const waitState = document.getElementById('analysis-wait-state');
+        const logState = document.getElementById('analysis-log-state');
+        const resultsState = document.getElementById('analysis-results-state');
+        const bubble = document.getElementById('bubble-screen-6');
+
+        btn.disabled = true;
+        waitState.style.display = 'none';
+        logState.style.display = 'flex';
+        if (bubble) bubble.innerText = "Crunching audio signals... Processing neural vectors now!";
+
+        // Stagger terminal lines simulation sequence array loop parameters
+        const logLines = logState.children;
+        Array.from(logLines).forEach((line, index) => {
+            line.style.opacity = '0';
+            setTimeout(() => {
+                line.style.opacity = '1';
+            }, index * 400);
+        });
+
+        // Resolve processing framework pipeline state transitions cleanly
+        setTimeout(() => {
+            logState.style.display = 'none';
+            resultsState.style.display = 'flex';
+            btn.disabled = false;
+            if (bubble) bubble.innerText = "Calculations complete! Review your linguistic delivery score analytics.";
+        }, 2200);
+    }
+
+    // Welcome Typewriter State Configurations
+    const welcomeText = "Welcome to CipherAI";
+    const textElement = document.getElementById("typewriter-text");
+    const bubbleElement = document.getElementById("bubble-screen-1");
+    let typeInterval;
+
+    function triggerHomeAnimations() {
+        textElement.innerHTML = "";
+        clearInterval(typeInterval);
+        
+        let typeIndex = 0;
+        typeInterval = setInterval(() => {
+            if (typeIndex < welcomeText.length) {
+                textElement.innerHTML += welcomeText.charAt(typeIndex);
+                typeIndex++;
+            } else {
+                clearInterval(typeInterval);
+                setTimeout(() => {
+                    bubbleElement.innerText = "Systems online! Standing by for initiation deployment sequence.";
+                }, 400);
+            }
+        }, 80);
+    }
+
+    // Kickoff Initial Configuration Bindings on Page Target Render Paint
+    window.onload = () => {
+        injectRobotMascot('screen-1');
+        triggerHomeAnimations();
+    };
+</script>
+
+</body>
+</html>

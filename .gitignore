@@ -149,3 +149,4 @@ package-lock.json
 
 dist/
 firebase-service-creds.json
+*014fa98e36.json
