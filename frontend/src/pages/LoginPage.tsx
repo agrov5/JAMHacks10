@@ -14,11 +14,10 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn, loading, error } = useGoogleAuth();
 
-  const handleGoogle = () => signIn(() => navigate('/topics'));
+  const noAccount = error?.includes('No account');
 
   return (
     <div className="auth-page">
-      {/* Form side */}
       <div className="auth-form-side">
         <nav className="page-nav">
           <span className="logo">Cipher.AI 🤖</span>
@@ -27,51 +26,32 @@ export default function LoginPage() {
         <div className="auth-form-inner">
           <div>
             <h1 className="auth-heading">Welcome Back!</h1>
-            <p className="auth-subheading">Sign in to continue your practice</p>
+            <p className="auth-subheading">Sign in with your Google account to continue</p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Email address</label>
-            <input className="form-input" type="email" placeholder="you@example.com" />
-          </div>
-
-          <div className="form-group">
-            <div className="form-row">
-              <label className="form-label">Password</label>
-              <a className="form-link" href="#">Forgot password?</a>
-            </div>
-            <input className="form-input" type="password" placeholder="••••••••" />
-          </div>
-
-          <div className="form-group">
-            <div className="form-row" style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input type="checkbox" /> Remember me for 14 days
-              </label>
-            </div>
-          </div>
-
-          <button className="btn-primary" style={{ width: '100%', padding: '13px' }}>
-            Sign In
-          </button>
-
-          {error && <p className="error-text">{error}</p>}
-
-          <div className="divider">or</div>
-
-          <button className="google-btn" onClick={handleGoogle} disabled={loading}>
+          <button className="google-btn" onClick={() => signIn(() => navigate('/topics'))} disabled={loading}>
             <GoogleIcon />
             {loading ? 'Signing in…' : 'Sign in with Google'}
           </button>
 
-          <p className="auth-switch">
-            Don't have an account?{' '}
-            <span onClick={() => navigate('/signup')}>Sign Up</span>
-          </p>
+          {error && (
+            <div style={{
+              background: noAccount ? 'rgba(255,100,100,0.08)' : 'transparent',
+              border: noAccount ? '1px solid rgba(255,100,100,0.2)' : 'none',
+              borderRadius: 10,
+              padding: noAccount ? '12px 14px' : 0,
+            }}>
+              <p className="error-text">{error}</p>
+              {noAccount && (
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 6 }}>
+                  Access is by invitation only. Contact your administrator to get an account.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Visual side */}
       <div className="auth-visual">
         <div className="auth-visual-inner">
           <span className="auth-visual-robot">🤖</span>

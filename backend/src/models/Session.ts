@@ -4,6 +4,7 @@ export interface ISession extends Document {
   userId: Types.ObjectId;
   videoUrl: string;
   transcript: string;
+  feedback: string;
   goals: string[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -14,6 +15,7 @@ const SessionSchema = new Schema<ISession>(
     userId:     { type: Schema.Types.ObjectId, ref: 'User', required: true },
     videoUrl:   { type: String, required: true },
     transcript: { type: String, default: '' },
+    feedback:   { type: String, default: '' },
     goals:      { type: [String], default: [] },
   },
   { timestamps: true }

@@ -10,6 +10,23 @@ import os from 'os';
 import path from 'path';
 import { getServiceAccount, GCPServiceAccount } from '../util/serviceAccount';
 import { Session } from '../models/Session';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// ── Edit this prompt to change how Gemini analyses responses ──────────────────
+const ANALYSIS_PROMPT = process.env.GEMINI_PROMPT ?? `You are an expert interview coach.
+Analyse the candidate's response below and provide structured feedback covering:
+1. Relevance & Content
+2. Clarity & Communication
+3. Structure (STAR method if applicable)
+4. Strengths
+5. Areas for Improvement
+6. Overall Score (1–10)
+
+Be specific, constructive, and concise.`;
+// ─────────────────────────────────────────────────────────────────────────────
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
 const router = Router();
 
@@ -92,9 +109,15 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     const videoUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${gcsKey}`;
     const transcript: string = sttResponse.data.text ?? '';
 
-    const session = await Session.create({ userId, videoUrl, transcript, goals });
+    // Analyse transcript with Gemini
+    const geminiResult = await geminiModel.generateContent(
+      `${ANALYSIS_PROMPT}\n\nGoals: ${goals.join(', ')}\n\nTranscript:\n${transcript}`
+    );
+    const feedback: string = geminiResult.response.text();
 
-    res.json({ sessionId: session._id, videoUrl, transcript });
+    const session = await Session.create({ userId, videoUrl, transcript, feedback, goals });
+
+    res.json({ sessionId: session._id, videoUrl, transcript, feedback });
   } catch (err) {
     console.error('Interview submit error:', err);
     res.status(500).json({ message: 'Failed to process video' });

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 const SAMPLE_QUESTION =
@@ -9,19 +9,18 @@ type Status = 'idle' | 'recording' | 'uploading' | 'done' | 'error';
 
 export default function InterviewPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const topics: string[] = location.state?.topics ?? [];
 
-  const videoRef        = useRef<HTMLVideoElement>(null);
-  const streamRef       = useRef<MediaStream | null>(null);
-  const recorderRef     = useRef<MediaRecorder | null>(null);
-  const chunksRef       = useRef<Blob[]>([]);
+  const videoRef    = useRef<HTMLVideoElement>(null);
+  const streamRef   = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef   = useRef<Blob[]>([]);
 
-  const [camActive, setCamActive]   = useState(false);
-  const [status, setStatus]         = useState<Status>('idle');
-  const [transcript, setTranscript] = useState('');
-  const [gcsUrl, setGcsUrl]         = useState('');
-  const [errorMsg, setErrorMsg]     = useState('');
-  const [questionNum]               = useState(1);
+  const [camActive, setCamActive] = useState(false);
+  const [status, setStatus]       = useState<Status>('idle');
+  const [errorMsg, setErrorMsg]   = useState('');
+  const [questionNum]             = useState(1);
 
   useEffect(() => {
     navigator.mediaDevices
@@ -93,9 +92,14 @@ export default function InterviewPage() {
       if (!res.ok) {
         throw new Error(data.message ?? `Request failed (${res.status})`);
       }
-      setGcsUrl(data.videoUrl ?? '');
-      setTranscript(data.transcript ?? '');
-      setStatus('done');
+      navigate('/feedback', {
+        state: {
+          transcript: data.transcript ?? '',
+          feedback:   data.feedback ?? '',
+          videoUrl:   data.videoUrl ?? '',
+          topics,
+        },
+      });
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
       setStatus('error');
@@ -168,50 +172,16 @@ export default function InterviewPage() {
 
         {/* States */}
         {status === 'uploading' && (
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
-            Processing video…
-          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Analysing your response…</p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>This may take a moment</p>
+          </div>
         )}
 
         {status === 'error' && (
-          <p className="error-text">{errorMsg}</p>
-        )}
-
-        {status === 'done' && (
-          <div style={{
-            background: '#111',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            padding: '20px 24px',
-            maxWidth: 520,
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-          }}>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 1 }}>
-              Transcript
-            </p>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
-              {transcript || '(no speech detected)'}
-            </p>
-            {gcsUrl && (
-              <a
-                href={gcsUrl}
-                target="_blank"
-                rel="noreferrer"
-                style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', wordBreak: 'break-all' }}
-              >
-                🎬 View saved video
-              </a>
-            )}
-            <button
-              className="btn-proceed"
-              style={{ alignSelf: 'flex-start', marginTop: 4 }}
-              onClick={() => setStatus('idle')}
-            >
-              Record again
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <p className="error-text">{errorMsg}</p>
+            <button className="btn-proceed" onClick={() => setStatus('idle')}>Try again</button>
           </div>
         )}
       </main>
