@@ -845,3 +845,130 @@ body {
   .setup-card { padding: 20px; }
   .profile-practice-cta { flex-direction: column; align-items: flex-start; }
 }
+
+/* ── Jobs Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-card {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.modal-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 4px;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.modal-close:hover { color: rgba(255, 255, 255, 0.7); }
+
+.jobs-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px 20px 20px;
+}
+
+.job-card {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.job-card:last-child { border-bottom: none; }
+
+.job-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: #fff;
+}
+
+.job-meta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+}
+
+.job-type-tag {
+  display: inline-block;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  padding: 2px 8px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+  margin-top: 4px;
+}
+
+.job-apply-btn {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  align-self: flex-start;
+}
+.job-apply-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}

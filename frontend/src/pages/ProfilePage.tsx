@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import Logo from '../components/Logo';
+import JobsModal from '../components/JobsModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
@@ -39,6 +42,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [jobTopics, setJobTopics] = useState<string[] | null>(null);
 
   const storedUser = localStorage.getItem('user');
   const userId: string = storedUser ? JSON.parse(storedUser).id : '';
@@ -224,16 +228,27 @@ export default function ProfilePage() {
                       {s.feedback.slice(0, 200)}{s.feedback.length > 200 ? '…' : ''}
                     </p>
                   )}
-                  {s.videoUrl && (
-                    <a
-                      href={s.videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', display: 'inline-block', marginTop: 8, textDecoration: 'underline' }}
-                    >
-                      View recording
-                    </a>
-                  )}
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+                    {s.goals.length > 0 && (
+                      <button
+                        className="btn-proceed"
+                        style={{ fontSize: 11, padding: '5px 12px', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)', color: '#FFD700' }}
+                        onClick={() => setJobTopics(s.goals)}
+                      >
+                        Find Jobs
+                      </button>
+                    )}
+                    {s.videoUrl && (
+                      <a
+                        href={s.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textDecoration: 'underline' }}
+                      >
+                        View recording
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -245,12 +260,14 @@ export default function ProfilePage() {
           <button
             className="btn-proceed"
             style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)', fontSize: 12 }}
-            onClick={() => { localStorage.removeItem('user'); navigate('/login'); }}
+            onClick={async () => { await signOut(auth); localStorage.removeItem('user'); navigate('/login'); }}
           >
             Sign out
           </button>
         </div>
       </main>
+
+      {jobTopics && <JobsModal topics={jobTopics} onClose={() => setJobTopics(null)} />}
     </div>
   );
 }

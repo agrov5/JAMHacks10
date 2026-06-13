@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import Logo from '../components/Logo';
+import JobsModal from '../components/JobsModal';
 
 interface QuestionResult {
   sessionId?: string;
@@ -21,7 +24,14 @@ export default function FeedbackPage() {
     difficulty: string;
   };
 
-  const [expanded, setExpanded] = useState<number>(0);
+  const [expanded,   setExpanded]   = useState<number>(0);
+  const [showJobs,   setShowJobs]   = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   return (
     <div className="steps-page">
@@ -55,7 +65,6 @@ export default function FeedbackPage() {
 
         {results.map((r, i) => (
           <div key={i} className="feedback-question-card">
-            {/* Header — always visible */}
             <button
               className="feedback-question-header"
               onClick={() => setExpanded(expanded === i ? -1 : i)}
@@ -65,32 +74,23 @@ export default function FeedbackPage() {
               <span className="feedback-chevron">{expanded === i ? '▲' : '▼'}</span>
             </button>
 
-            {/* Body — expanded */}
             {expanded === i && (
               <div className="feedback-question-body">
-                {/* AI Feedback */}
                 <div className="feedback-section">
                   <p className="feedback-section-label">AI Analysis</p>
                   <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.8 }}>
                     <ReactMarkdown>{r.feedback || 'No feedback available.'}</ReactMarkdown>
                   </div>
                 </div>
-
-                {/* Transcript */}
                 <div className="feedback-section">
                   <p className="feedback-section-label">Transcript</p>
                   <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>
                     {r.transcript || '(no speech detected)'}
                   </p>
                 </div>
-
                 {r.videoUrl && (
-                  <a
-                    href={r.videoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'underline', display: 'inline-block' }}
-                  >
+                  <a href={r.videoUrl} target="_blank" rel="noreferrer"
+                    style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'underline', display: 'inline-block' }}>
                     🎬 View recording
                   </a>
                 )}
@@ -104,6 +104,15 @@ export default function FeedbackPage() {
           <button className="btn-proceed" onClick={() => navigate('/next-steps')}>
             Practice again
           </button>
+          {topics.length > 0 && (
+            <button
+              className="btn-proceed"
+              style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', color: '#FFD700' }}
+              onClick={() => setShowJobs(true)}
+            >
+              Find Relevant Jobs
+            </button>
+          )}
           <button
             className="btn-proceed"
             style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }}
@@ -114,12 +123,14 @@ export default function FeedbackPage() {
           <button
             className="btn-proceed"
             style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }}
-            onClick={() => { localStorage.removeItem('user'); navigate('/login'); }}
+            onClick={handleSignOut}
           >
             Sign out
           </button>
         </div>
       </main>
+
+      {showJobs && <JobsModal topics={topics} onClose={() => setShowJobs(false)} />}
     </div>
   );
 }

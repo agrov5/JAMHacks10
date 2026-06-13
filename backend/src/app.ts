@@ -4,6 +4,7 @@ import authRoutes from './routes/auth';
 import interviewRoutes from './routes/interview';
 import adminRoutes from './routes/admin';
 import userRoutes from './routes/user';
+import jobRoutes from './routes/jobs';
 
 export const app: Express = express();
 
@@ -29,3 +30,6 @@ app.use('/api/admin', adminRoutes);
 
 // User routes (resume, profile)
 app.use('/api/user', userRoutes);
+
+// Jobs routes
+app.use('/api/jobs', jobRoutes);
