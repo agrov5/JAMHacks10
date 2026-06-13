@@ -18,7 +18,7 @@ export default function FeedbackPage() {
       <nav className="page-nav">
         <Logo />
         {topics.length > 0 && (
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
             {topics.map(t => (
               <span key={t} style={{
                 background: 'rgba(255,255,255,0.07)',
