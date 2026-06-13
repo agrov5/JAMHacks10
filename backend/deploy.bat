@@ -40,7 +40,7 @@ if %ERRORLEVEL% neq 0 (
 echo [3/4] Deploying new revision to Google Cloud Run...
 call gcloud run deploy %GCP_SERVICE% ^
   --image docker.io/%IMAGE_TAG% ^
-  --region %GCP_REGION%
+  --region %GCP_REGION% --service-account=firebase-adminsdk-fbsvc@testing-c0092.iam.gserviceaccount.com
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Cloud Run deployment failed.
     exit /b %ERRORLEVEL%
