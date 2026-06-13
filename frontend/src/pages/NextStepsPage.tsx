@@ -1,3 +1,4 @@
+import RobotEmoji from '../components/RobotEmoji';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const STEPS = [
@@ -14,7 +15,7 @@ export default function NextStepsPage() {
   return (
     <div className="steps-page">
       <nav className="page-nav">
-        <span className="logo">Cipher.AI 🤖</span>
+        <span className="logo">Cipher.AI <RobotEmoji size={18} /></span>
       </nav>
 
       <main className="steps-main">

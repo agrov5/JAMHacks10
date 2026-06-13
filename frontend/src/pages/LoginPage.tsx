@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import RobotEmoji from '../components/RobotEmoji';
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
@@ -20,11 +21,11 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-form-side">
         <nav className="page-nav">
-          <span className="logo">Cipher.AI 🤖</span>
+          <span className="logo">Cipher.AI <RobotEmoji size={18} /></span>
         </nav>
 
         <div className="auth-form-inner">
-          <div>
+          <div style={{ marginBottom: 24 }}>
             <h1 className="auth-heading">Welcome Back!</h1>
             <p className="auth-subheading">Sign in with your Google account to continue</p>
           </div>
@@ -54,7 +55,7 @@ export default function LoginPage() {
 
       <div className="auth-visual">
         <div className="auth-visual-inner">
-          <span className="auth-visual-robot">🤖</span>
+          <span className="auth-visual-robot"><RobotEmoji size={96} /></span>
           <span className="auth-visual-tag">AI-powered interview prep</span>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', maxWidth: 220, lineHeight: 1.6 }}>
             Practice with real interview questions and get instant AI feedback

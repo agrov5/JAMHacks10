@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RobotEmoji from '../components/RobotEmoji';
 
 const FULL_TEXT = 'Welcome to CipherAI';
 const BUBBLES = ['Hi there! 👋', 'Ready to practice?', "Let's ace that interview!"];
@@ -28,7 +29,7 @@ export default function WelcomePage() {
   return (
     <div className="welcome-page">
       <nav>
-        <span className="logo">Cipher.AI 🤖</span>
+        <span className="logo">Cipher.AI <RobotEmoji size={20} /></span>
       </nav>
 
       <main className="welcome-main">
@@ -41,7 +42,9 @@ export default function WelcomePage() {
           <div className="speech-bubble" key={bubbleIdx}>
             {BUBBLES[bubbleIdx]}
           </div>
-          <span className="robot-emoji">🤖</span>
+          <span className="robot-emoji">
+            <RobotEmoji size={72} />
+          </span>
         </div>
 
         <button className="btn-primary" onClick={() => navigate('/login')}>

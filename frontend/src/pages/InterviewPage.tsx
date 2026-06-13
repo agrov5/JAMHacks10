@@ -1,3 +1,4 @@
+import RobotEmoji from '../components/RobotEmoji';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -114,7 +115,7 @@ export default function InterviewPage() {
   return (
     <div className="interview-page">
       <nav className="page-nav">
-        <span className="logo">Cipher.AI 🤖</span>
+        <span className="logo">Cipher.AI <RobotEmoji size={18} /></span>
         {topics.length > 0 && (
           <div style={{ display: 'flex', gap: 6 }}>
             {topics.map(t => (

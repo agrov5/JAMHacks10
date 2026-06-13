@@ -1,3 +1,4 @@
+import RobotEmoji from '../components/RobotEmoji';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,7 +28,7 @@ export default function TopicsPage() {
   return (
     <div className="topics-page">
       <nav className="page-nav">
-        <span className="logo">Cipher.AI 🤖</span>
+        <span className="logo">Cipher.AI <RobotEmoji size={18} /></span>
       </nav>
 
       <main className="topics-main">
