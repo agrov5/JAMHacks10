@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth';
 import interviewRoutes from './routes/interview';
 import adminRoutes from './routes/admin';
+import userRoutes from './routes/user';
 
 export const app: Express = express();
 
@@ -25,3 +26,6 @@ app.use('/api/interview', interviewRoutes);
 
 // Admin routes (Basic Auth protected)
 app.use('/api/admin', adminRoutes);
+
+// User routes (resume, profile)
+app.use('/api/user', userRoutes);

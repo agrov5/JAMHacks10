@@ -31,7 +31,7 @@ export default function LoginPage() {
             <p className="auth-subheading">Sign in with your Google account to continue</p>
           </div>
 
-          <button className="google-btn" onClick={() => signIn(() => navigate('/topics'))} disabled={loading}>
+          <button className="google-btn" onClick={() => signIn(() => navigate('/next-steps'))} disabled={loading}>
             <GoogleIcon />
             {loading ? 'Signing in…' : 'Sign in with Google'}
           </button>

@@ -545,3 +545,152 @@ body {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255,68,68,0.4); }
   50%       { box-shadow: 0 0 0 14px rgba(255,68,68,0); }
 }
+
+/* ── Topic AI suggestion badge ── */
+.topic-pill .topic-suggested-badge {
+  display: inline-block;
+  margin-left: 7px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  border-radius: 4px;
+  padding: 1px 5px;
+  vertical-align: middle;
+}
+.topic-pill.selected .topic-suggested-badge {
+  background: rgba(0,0,0,0.12);
+  color: rgba(0,0,0,0.5);
+}
+
+/* ── Resume Page ── */
+.resume-upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 440px;
+  align-items: stretch;
+}
+
+.resume-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px dashed rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 40px 24px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #111;
+  text-align: center;
+}
+.resume-drop-zone:hover { border-color: rgba(255,255,255,0.3); background: #161616; }
+.resume-drop-zone.has-file { border-color: rgba(255,255,255,0.25); border-style: solid; }
+
+/* ── Profile Page ── */
+.profile-page {
+  min-height: 100dvh;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 48px 36px;
+}
+
+.profile-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 720px;
+  width: 100%;
+  margin: 32px auto 0;
+}
+
+.profile-section {
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+}
+
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fff;
+  color: #0a0a0a;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-stats-row {
+  display: flex;
+  gap: 16px;
+}
+
+.profile-stat-card {
+  flex: 1;
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+.profile-stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.session-card {
+  background: #0f0f0f;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.session-goal-tag {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+
+@media (max-width: 640px) {
+  .profile-page { padding: 20px 20px 28px; }
+  .profile-stats-row { flex-direction: column; }
+  .steps-row { flex-direction: column; }
+}

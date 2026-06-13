@@ -1,16 +1,15 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 
 const STEPS = [
-  { num: 1, text: 'Decide topics for you to respond to' },
-  { num: 2, text: 'Generate questions for you to respond to' },
-  { num: 3, text: 'AI will assess and give critique' },
+  { num: 1, text: 'Upload your resume so we can suggest the best practice goals for you' },
+  { num: 2, text: 'Choose up to 3 interview topics you want to focus on' },
+  { num: 3, text: 'Record your response to an AI-generated question' },
+  { num: 4, text: 'Receive detailed AI feedback and a score' },
 ];
 
 export default function NextStepsPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const topics: string[] = location.state?.topics ?? [];
 
   return (
     <div className="steps-page">
@@ -19,29 +18,14 @@ export default function NextStepsPage() {
       </nav>
 
       <main className="steps-main">
-        <h1 className="steps-heading">The Next Steps</h1>
+        <div style={{ textAlign: 'center' }}>
+          <h1 className="steps-heading">Here's How It Works</h1>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', marginTop: 8 }}>
+            Four simple steps to sharpen your interview skills
+          </p>
+        </div>
 
-        {topics.length > 0 && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {topics.map(t => (
-              <span
-                key={t}
-                style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: 100,
-                  padding: '4px 14px',
-                  fontSize: 12,
-                  color: 'rgba(255,255,255,0.5)',
-                }}
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="steps-row">
+        <div className="steps-row" style={{ flexWrap: 'wrap' }}>
           {STEPS.map(s => (
             <div key={s.num} className="step-card">
               <div className="step-num">{s.num}</div>
@@ -52,11 +36,8 @@ export default function NextStepsPage() {
       </main>
 
       <div className="page-bottom">
-        <button
-          className="btn-proceed"
-          onClick={() => navigate('/interview', { state: { topics } })}
-        >
-          Proceed
+        <button className="btn-proceed" onClick={() => navigate('/resume')}>
+          Get Started
         </button>
       </div>
     </div>

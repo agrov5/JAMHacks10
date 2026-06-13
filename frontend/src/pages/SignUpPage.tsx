@@ -14,7 +14,7 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   const { signIn, loading, error } = useGoogleAuth();
 
-  const handleGoogle = () => signIn(() => navigate('/topics'));
+  const handleGoogle = () => signIn(() => navigate('/next-steps'));
 
   return (
     <div className="auth-page">

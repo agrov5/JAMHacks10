@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password: string; // hashed password (bcrypt) or placeholder for Google-only users
   allowAI: boolean;
   username: string;
+  resumeGcsKey?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,6 +18,7 @@ const UserSchema = new Schema<IUser>(
     password: { type: String, required: true }, // we will store a hash or placeholder
     allowAI: { type: Boolean, default: false },
     username: { type: String, required: true, unique: true, trim: true },
+    resumeGcsKey: { type: String, default: null },
   },
   {
     timestamps: true,

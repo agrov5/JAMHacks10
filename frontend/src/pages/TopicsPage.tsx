@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../components/Logo';
 
 const TOPICS = [
@@ -12,8 +12,11 @@ const TOPICS = [
 ];
 
 export default function TopicsPage() {
-  const [selected, setSelected] = useState<string[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const suggestedGoals: string[] = location.state?.suggestedGoals ?? [];
+
+  const [selected, setSelected] = useState<string[]>(suggestedGoals.slice(0, 3));
 
   const toggle = (topic: string) => {
     setSelected(prev =>
@@ -35,7 +38,9 @@ export default function TopicsPage() {
         <div style={{ textAlign: 'center' }}>
           <h1 className="topics-heading">Choose Up To 3 Topics</h1>
           <p className="topics-sub" style={{ marginTop: 8 }}>
-            We'll tailor your interview questions around these
+            {suggestedGoals.length > 0
+              ? 'We pre-selected these based on your resume — adjust as you like'
+              : 'We\'ll tailor your interview questions around these'}
           </p>
         </div>
 
@@ -43,10 +48,13 @@ export default function TopicsPage() {
           {TOPICS.map(topic => (
             <button
               key={topic}
-              className={`topic-pill${selected.includes(topic) ? ' selected' : ''}`}
+              className={`topic-pill${selected.includes(topic) ? ' selected' : ''}${suggestedGoals.includes(topic) && !selected.includes(topic) ? ' suggested' : ''}`}
               onClick={() => toggle(topic)}
             >
               {topic}
+              {suggestedGoals.includes(topic) && (
+                <span className="topic-suggested-badge">AI</span>
+              )}
             </button>
           ))}
         </div>
@@ -60,9 +68,9 @@ export default function TopicsPage() {
         <button
           className="btn-proceed"
           disabled={selected.length === 0}
-          onClick={() => navigate('/next-steps', { state: { topics: selected } })}
+          onClick={() => navigate('/interview', { state: { topics: selected } })}
         >
-          Proceed
+          Start Interview
         </button>
       </div>
     </div>

@@ -85,9 +85,16 @@ export default function FeedbackPage() {
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
-          <button className="btn-proceed" onClick={() => navigate('/topics')}>
+        <div style={{ display: 'flex', gap: 12, paddingTop: 8, flexWrap: 'wrap' }}>
+          <button className="btn-proceed" onClick={() => navigate('/next-steps')}>
             Practice again
+          </button>
+          <button
+            className="btn-proceed"
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }}
+            onClick={() => navigate('/profile')}
+          >
+            View Profile
           </button>
           <button
             className="btn-proceed"
