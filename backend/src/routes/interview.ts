@@ -8,12 +8,17 @@ import FormData from 'form-data';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { getServiceAccount, GCPServiceAccount } from '../util/serviceAccount';
 
 const router = Router();
 
 ffmpeg.setFfmpegPath(ffmpegStatic ?? 'ffmpeg');
 
-const storage = new Storage();
+const sa: GCPServiceAccount = getServiceAccount();
+const storage = new Storage({
+  projectId: sa.project_id,
+  credentials: { client_email: sa.client_email, private_key: sa.private_key },
+});
 const bucket = storage.bucket(process.env.GCS_BUCKET_NAME!);
 
 const upload = multer({
