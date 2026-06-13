@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher.AI Workspace</title>
+    <style>
+        /* Dark Theme Variables */
+        :root {
+            --bg-screen: #1a1a1a;
+            --bg-panel: #2a2a2a;
+            --bg-light-panel: #e0e0e0;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: #ffffff;
+            --font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+            --error-red: #ff4d4d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fullscreen Layout */
+        body {
+            background-color: var(--bg-screen);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fluid Layer Transitions */
+        .view-layer {
+            position: absolute;
+            inset: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            z-index: 1;
+        }
+        
+        .view-layer.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            z-index: 2;
+        }
+
+        /* Top Bar Logo */
+        .brand-logo {
+            font-weight: bold;
+            font-size: 24px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            transition: color 0.2s ease;
+        }
+        .brand-logo:hover {
+            color: #cccccc;
+        }
+
+        /* Interactive Buttons */
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 40px;
+            font-family: inherit;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease, opacity 0.3s ease;
+        }
+        .btn-outline:hover:not(:disabled) {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.02);
+        }
+        .btn-outline:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-outline:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        /* ================= SCREEN 1: LANDING ================= */
+        #screen-1 .center-text {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        /* Typing Animation Cursor */
+        .cursor {
+            display: inline-block;
+            width: 4px;
+            height: 48px;
+            background-color: var(--text-main);
+            margin-left: 6px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Mascot & Speech Bubble Layout */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            padding-bottom: 20px;
+        }
+
+        .mascot-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .svg-robot {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .speech-bubble {
+            background: var(--text-main);
+            color: var(--bg-screen);
+            padding: 10px 20px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 16px;
+            position: relative;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 8px 10px 8px 0;
+            border-style: solid;
+            border-color: transparent var(--text-main) transparent transparent;
+        }
+        .speech-bubble.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* ================= SCREEN 2 & 3: FORMS ================= */
+        .split-layout {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+        .form-side {
+            width: 40%;
+            padding: 40px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .media-side {
+            width: 60%;
+            background-color: var(--bg-light-panel);
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .placeholder-animation {
+            width: 80%;
+            height: 80%;
+            border: 3px dashed #aaa;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            font-size: 18px;
+            animation: pulseBg 4s infinite alternate;
+        }
+        @keyframes pulseBg {
+            0% { background-color: rgba(0,0,0,0.02); }
+            100% { background-color: rgba(0,0,0,0.08); }
+        }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+        .input-box {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background-color: #e0e0e0;
+            font-family: inherit;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .input-box:focus {
+            outline: 2px solid var(--border-color);
+            transform: scale(1.01);
+        }
+        .btn-solid-gray {
+            background: #666;
+            color: white;
+            border: 2px solid #888;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 12px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-solid-gray:hover { background: #555; transform: translateY(-1px); }
+        
+        .btn-solid-white {
+            background: white;
+            color: black;
+            border: 2px solid white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-solid-white:hover { background: #eee; transform: translateY(-1px); }
+
+        /* ================= SCREEN 4: STEPS ================= */
+        .steps-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .steps-row {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 60px;
+            width: 80%;
+            max-width: 1000px;
+        }
+        .step-item {
+            flex: 1;
+            text-align: left;
+            font-size: 20px;
+            line-height: 1.5;
+        }
+
+        /* ================= SCREEN 5: TOPICS ================= */
+        .topics-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .circle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 50px;
+        }
+        .topic-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid var(--border-color);
+            background: transparent;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-family: inherit;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        color 0.3s ease, 
+                        transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .topic-circle:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .topic-circle.selected {
+            background: var(--text-main);
+            color: var(--bg-screen);
+            transform: scale(1.08);
+            font-weight: bold;
+        }
+        .warning-text {
+            color: var(--error-red);
+            margin-top: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            height: 24px;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ================= SCREEN 6: DASHBOARD ================= */
+        .dashboard-layout {
+            display: flex;
+            gap: 40px;
+            flex-grow: 1;
+            margin-top: 20px;
+        }
+        .dash-left {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .dash-right {
+            width: 40%;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .question-box {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            font-size: 20px;
+        }
+        .video-dropzone {
+            flex-grow: 1;
+            border: 3px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .video-dropzone:hover {
+            background-color: rgba(255,255,255,0.03);
+        }
+        .dash-action-bar {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div id="screen-1" class="view-layer active">
+        <div class="brand-logo">Cipher.AI</div>
+        
+        <div class="center-text">
+            <span id="typewriter-text"></span><span class="cursor"></span>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="mascot-container">
+                <svg class="svg-robot" viewBox="0 0 100 100" width="100" height="100">
+                    <circle cx="20" cy="65" r="8" fill="#e0e0e0" />
+                    <circle cx="80" cy="65" r="8" fill="#e0e0e0" />
+                    <rect x="35" y="80" width="10" height="15" rx="4" fill="#e0e0e0" transform="rotate(15 40 85)" />
+                    <rect x="55" y="80" width="10" height="15" rx="4" fill="#e0e0e0" transform="rotate(-15 60 85)" />
+                    <circle cx="50" cy="15" r="8" fill="#e0e0e0" />
+                    <rect x="15" y="35" width="15" height="20" rx="5" fill="#e0e0e0" />
+                    <rect x="85" y="35" width="15" height="20" rx="5" fill="#e0e0e0" transform="translate(-15,0)" />
+                    <path d="M 22 45 C 22 15, 78 15, 78 45 C 78 75, 22 75, 22 45 Z" fill="#e0e0e0" />
+                    <path d="M 30 46 C 30 25, 70 25, 70 46 C 70 65, 30 65, 30 46 Z" fill="#1a1a1a" />
+                    <ellipse cx="40" cy="42" rx="4.5" ry="7" fill="#ffffff" transform="rotate(-15 40 42)" />
+                    <ellipse cx="60" cy="42" rx="4.5" ry="7" fill="#ffffff" transform="rotate(15 60 42)" />
+                    <path d="M 45 54 Q 50 58 55 54" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                    <path d="M 35 65 L 65 65 L 60 80 L 40 80 Z" fill="#e0e0e0" />
+                    <path d="M 37 72 L 63 72 L 62 77 L 38 77 Z" fill="#1a1a1a" />
+                </svg>
+
+                <div class="speech-bubble" id="robot-bubble">Hi there!</div>
+            </div>
+            <button class="btn-outline" onclick="navigate('screen-2')">Enter</button>
+            <div style="width: 200px;"></div>
+        </div>
+    </div>
+
+    <div id="screen-2" class="view-layer">
+        <div class="split-layout">
+            <div class="form-side">
+                <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+                
+                <div style="margin-top: 60px;">
+                    <h2 style="margin-bottom: 30px; font-size: 32px;">Welcome Back!</h2>
+                    
+                    <div class="input-group">
+                        <label>Email address</label>
+                        <input type="email" class="input-box">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" class="input-box">
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 30px;">
+                        <label><input type="checkbox"> Remember for 10 Days</label>
+                        <a href="#" style="color: var(--text-main);">Forgot my Password</a>
+                    </div>
+                    
+                    <button class="btn-solid-gray" onclick="navigate('screen-4')">Sign In</button>
+                    <button class="btn-solid-white" onclick="navigate('screen-4')">
+                        <b style="color: #4285F4; font-size: 20px;">G</b> Sign in with Google
+                    </button>
+                    
+                    <p style="font-size: 14px; text-align: center; margin-top: 20px; color: var(--text-muted);">
+                        Don't Have An Account? <span style="color: var(--text-main); cursor: pointer; text-decoration: underline;" onclick="navigate('screen-3')">Sign Up</span>
+                    </p>
+                </div>
+            </div>
+            <div class="media-side">
+                <div class="placeholder-animation">Image or small animation</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-3" class="view-layer">
+        <div class="split-layout">
+            <div class="form-side">
+                <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+                
+                <div style="margin-top: 60px;">
+                    <h2 style="margin-bottom: 30px; font-size: 32px;">Welcome!</h2>
+                    
+                    <div class="input-group">
+                        <label>Email address</label>
+                        <input type="email" class="input-box">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" class="input-box">
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 30px;">
+                        <label><input type="checkbox"> Remember for 10 Days</label>
+                        <a href="#" style="color: var(--text-main);">Forgot my Password</a>
+                    </div>
+                    
+                    <button class="btn-solid-gray" onclick="navigate('screen-4')">Create Account</button>
+                    <button class="btn-solid-white" onclick="navigate('screen-4')">
+                        <b style="color: #4285F4; font-size: 20px;">G</b> Sign up with Google
+                    </button>
+                    
+                    <p style="font-size: 14px; text-align: center; margin-top: 20px; color: var(--text-muted);">
+                        Already have an account? <span style="color: var(--text-main); cursor: pointer; text-decoration: underline;" onclick="navigate('screen-2')">Sign In</span>
+                    </p>
+                </div>
+            </div>
+            <div class="media-side">
+                <div class="placeholder-animation">Image or small animation</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-4" class="view-layer">
+        <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+        
+        <div class="steps-wrapper">
+            <h2 style="font-size: 36px;">The Next Steps</h2>
+            <div class="steps-row">
+                <div class="step-item"><strong>1.</strong> Decide topics</div>
+                <div class="step-item"><strong>2.</strong> Generate questions for you to respond to</div>
+                <div class="step-item"><strong>3.</strong> AI will examine and give critique</div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-outline" onclick="navigate('screen-5')">Proceed</button>
+        </div>
+    </div>
+
+    <div id="screen-5" class="view-layer">
+        <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+        
+        <div class="topics-wrapper">
+            <h2 style="font-size: 36px;">Choose Up To 3 topics</h2>
+            <div class="circle-grid">
+                <button class="topic-circle" onclick="toggleTopic(this)">Teamwork</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Problem<br>Solving</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Adaptability</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Communication</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Leadership</button>
+                <button class="topic-circle" onclick="toggleTopic(this)">Project<br>Management</button>
+            </div>
+            <div id="topics-warning" class="warning-text">Please select between 1 and 3 topics to proceed.</div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-outline" id="proceed-topics-btn" disabled onclick="navigate('screen-6')">Proceed</button>
+        </div>
+    </div>
+
+    <div id="screen-6" class="view-layer">
+        <div style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+            <div class="brand-logo" onclick="navigate('screen-1')">Cipher.AI</div>
+            <span style="font-size: 16px; border: 1px solid var(--border-color); padding: 4px 12px; border-radius: 20px;">Dashboard</span>
+        </div>
+        
+        <div class="dashboard-layout">
+            <div class="dash-left">
+                <div class="question-box">
+                    <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px; font-weight: bold;">GENERATED INTERVIEW QUESTION</div>
+                    "Describe a situation where you had to collaborate closely with a team under a tight deadline."
+                </div>
+                
+                <div class="video-dropzone">
+                    <div style="font-size: 20px; margin-bottom: 10px;"><strong>Click to upload recorded video file</strong></div>
+                    <div style="color: var(--text-muted); font-size: 16px;">(User uploaded video response)</div>
+                </div>
+                
+                <div class="dash-action-bar">
+                    <button class="btn-outline" style="padding: 10px 24px; font-size: 16px;" disabled>Run Analysis Engine</button>
+                    <span style="color: var(--text-muted);">No video file attached</span>
+                </div>
+            </div>
+            
+            <div class="dash-right">
+                <div style="border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; font-weight: bold; font-size: 16px;">
+                    AI ANALYSIS CRITIQUE
+                </div>
+                <div style="color: var(--text-muted); flex-grow: 1; font-size: 18px; line-height: 1.5;">
+                    Upload your video and click run to receive performance feedback based on your selected topics.
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="#" style="color: var(--text-main); font-size: 14px; text-decoration: none;" onclick="navigate('screen-1')">← Restart Application</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Screen Navigation Engine with Active Management
+    function navigate(targetId) {
+        document.querySelectorAll('.view-layer').forEach(layer => {
+            layer.classList.remove('active');
+        });
+        
+        // Brief timeout ensures smooth rendering performance for DOM paint changes
+        setTimeout(() => {
+            document.getElementById(targetId).classList.add('active');
+        }, 50);
+
+        if (targetId === 'screen-1') {
+            triggerHomeAnimations();
+        }
+    }
+
+    // Flexible Topic Selection Rules Engine (1-3 Topics Allowed)
+    let selectedTopicsCount = 0;
+    
+    function toggleTopic(element) {
+        if (element.classList.contains('selected')) {
+            element.classList.remove('selected');
+            selectedTopicsCount--;
+        } else {
+            // Cap at 3 selections max
+            if (selectedTopicsCount < 3) {
+                element.classList.add('selected');
+                selectedTopicsCount++;
+            }
+        }
+        updateProceedButton();
+    }
+
+    function updateProceedButton() {
+        const proceedBtn = document.getElementById('proceed-topics-btn');
+        const warningText = document.getElementById('topics-warning');
+        
+        if (selectedTopicsCount >= 1 && selectedTopicsCount <= 3) {
+            proceedBtn.disabled = false;
+            warningText.style.opacity = '0'; // Clean CSS fade-out
+        } else {
+            proceedBtn.disabled = true;
+            warningText.style.opacity = '1'; // Clean CSS fade-in
+            if (selectedTopicsCount === 0) {
+                warningText.innerText = "Please select between 1 and 3 topics to proceed.";
+            }
+        }
+    }
+
+    // Custom Typing Animation and Chat Bubble Sequence
+    const welcomeText = "Welcome to CipherAI";
+    const textElement = document.getElementById("typewriter-text");
+    const bubbleElement = document.getElementById("robot-bubble");
+    let typeInterval;
+
+    function triggerHomeAnimations() {
+        textElement.innerHTML = "";
+        bubbleElement.classList.remove('show');
+        clearInterval(typeInterval);
+        
+        let typeIndex = 0;
+        typeInterval = setInterval(() => {
+            if (typeIndex < welcomeText.length) {
+                textElement.innerHTML += welcomeText.charAt(typeIndex);
+                typeIndex++;
+            } else {
+                clearInterval(typeInterval);
+                setTimeout(() => {
+                    bubbleElement.classList.add('show');
+                }, 400); // Pops up right after typing finishes
+            }
+        }, 80);
+    }
+
+    // App Initialization
+    window.onload = triggerHomeAnimations;
+</script>
+
+</body>
+</html>
