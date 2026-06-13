@@ -65,8 +65,13 @@ export default function InterviewPage() {
     setErrorMsg('');
     try {
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const storedUser = localStorage.getItem('user');
+      const userId: string = storedUser ? JSON.parse(storedUser).id : '';
+
       const form = new FormData();
       form.append('video', blob, 'recording.webm');
+      form.append('userId', userId);
+      form.append('goals', JSON.stringify(topics));
 
       const res = await fetch(`${backendUrl}/api/interview/submit`, {
         method: 'POST',

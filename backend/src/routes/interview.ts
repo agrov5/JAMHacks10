@@ -9,6 +9,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { getServiceAccount, GCPServiceAccount } from '../util/serviceAccount';
+import { Session } from '../models/Session';
 
 const router = Router();
 
@@ -41,6 +42,13 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     res.status(400).json({ message: 'No video file provided' });
     return;
   }
+
+  const { userId, goals: goalsRaw } = req.body as { userId?: string; goals?: string };
+  if (!userId) {
+    res.status(400).json({ message: 'userId is required' });
+    return;
+  }
+  const goals: string[] = goalsRaw ? JSON.parse(goalsRaw) : [];
 
   const inputPath = tmpFile('.webm');
   const mp4Path   = tmpFile('.mp4');  // audio + video combined
@@ -88,7 +96,9 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     const videoUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${gcsKey}`;
     const transcript: string = sttResponse.data.text ?? '';
 
-    res.json({ videoUrl, transcript });
+    const session = await Session.create({ userId, videoUrl, transcript, goals });
+
+    res.json({ sessionId: session._id, videoUrl, transcript });
   } catch (err) {
     console.error('Interview submit error:', err);
     res.status(500).json({ message: 'Failed to process video' });
