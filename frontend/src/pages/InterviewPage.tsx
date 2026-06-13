@@ -34,9 +34,10 @@ export default function InterviewPage() {
       .getUserMedia({ video: true, audio: true })
       .then(stream => {
         streamRef.current = stream;
+        // videoRef is always mounted now, so this is always non-null
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play();
+          videoRef.current.play().catch(() => {});
         }
         setCamActive(true);
       })
@@ -154,12 +155,17 @@ export default function InterviewPage() {
 
         {/* Webcam */}
         <div className="webcam-box">
-          {camActive ? (
-            <video ref={videoRef} muted playsInline />
-          ) : (
+          {/* video is always mounted so videoRef is never null when the stream arrives */}
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: camActive ? 'block' : 'none' }}
+          />
+          {!camActive && (
             <div className="webcam-off">
               <span className="webcam-off-icon">📷</span>
-              <span>Camera unavailable</span>
+              <span>{camError ? 'Camera error' : 'Waiting for camera…'}</span>
               {camError && <span style={{ fontSize: 11, color: 'rgba(255,100,100,0.7)', maxWidth: 280, textAlign: 'center' }}>{camError}</span>}
             </div>
           )}
