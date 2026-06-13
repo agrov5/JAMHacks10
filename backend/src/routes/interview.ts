@@ -50,48 +50,44 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
   }
   const goals: string[] = goalsRaw ? JSON.parse(goalsRaw) : [];
 
-  const inputPath = tmpFile('.webm');
-  const mp4Path   = tmpFile('.mp4');  // audio + video combined
-  const audioPath = tmpFile('.mp3');  // audio-only for ElevenLabs
+  const audioPath = tmpFile('.mp3');
 
   try {
+    const timestamp = Date.now();
+    const gcsKey = `interviews/${timestamp}.webm`;
+
+    // Upload original webm (has audio+video) directly from buffer — no transcoding needed
+    const gcsFile = bucket.file(gcsKey);
+    await gcsFile.save(req.file.buffer, { metadata: { contentType: 'video/webm' } });
+
+    // Write to temp file only to extract audio for ElevenLabs
+    const inputPath = tmpFile('.webm');
     fs.writeFileSync(inputPath, req.file.buffer);
 
-    // Transcode to mp4 (keeping audio) and extract audio-only mp3 in parallel
-    await Promise.all([
-      runFfmpeg(
-        ffmpeg(inputPath)
-          .videoCodec('libx264')
-          .audioCodec('aac')
-          .outputOptions(['-preset fast', '-crf 23'])
-          .output(mp4Path)
-      ),
-      runFfmpeg(
+    try {
+      await runFfmpeg(
         ffmpeg(inputPath)
           .noVideo()
           .audioCodec('libmp3lame')
           .audioBitrate('128k')
           .output(audioPath)
-      ),
-    ]);
+      );
+    } finally {
+      try { fs.unlinkSync(inputPath); } catch {}
+    }
 
-    const timestamp = Date.now();
-    const gcsKey = `interviews/${timestamp}.mp4`;
-
-    // Upload combined mp4 to GCS and send audio to ElevenLabs in parallel
     const form = new FormData();
     form.append('file', fs.createReadStream(audioPath), {
       filename: 'audio.mp3',
       contentType: 'audio/mpeg',
     });
-    form.append('model_id', 'scribe_v1');
+    form.append('model_id', 'scribe_v1_experimental');
 
-    const [, sttResponse] = await Promise.all([
-      bucket.upload(mp4Path, { destination: gcsKey, metadata: { contentType: 'video/mp4' } }),
-      axios.post('https://api.elevenlabs.io/v1/speech-to-text', form, {
-        headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, ...form.getHeaders() },
-      }),
-    ]);
+    const sttResponse = await axios.post(
+      'https://api.elevenlabs.io/v1/speech-to-text',
+      form,
+      { headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, ...form.getHeaders() } }
+    );
 
     const videoUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${gcsKey}`;
     const transcript: string = sttResponse.data.text ?? '';
@@ -103,9 +99,7 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     console.error('Interview submit error:', err);
     res.status(500).json({ message: 'Failed to process video' });
   } finally {
-    for (const f of [inputPath, mp4Path, audioPath]) {
-      try { fs.unlinkSync(f); } catch {}
-    }
+    try { fs.unlinkSync(audioPath); } catch {}
   }
 });
 

@@ -73,10 +73,14 @@ export default function InterviewPage() {
       form.append('userId', userId);
       form.append('goals', JSON.stringify(topics));
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3 * 60 * 1000); // 3 min
+
       const res = await fetch(`${backendUrl}/api/interview/submit`, {
         method: 'POST',
         body: form,
-      });
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeout));
 
       const text = await res.text();
       let data: Record<string, string>;
