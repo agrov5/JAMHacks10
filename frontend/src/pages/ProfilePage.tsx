@@ -320,7 +320,7 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {jobTopics && <JobsModal topics={jobTopics} onClose={() => setJobTopics(null)} />}
+      {jobTopics && <JobsModal topics={jobTopics} location={profile?.user.location} onClose={() => setJobTopics(null)} />}
     </div>
   );
 }

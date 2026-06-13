@@ -6,6 +6,7 @@ interface Job {
   id: string;
   title: string;
   company: string;
+  logo: string | null;
   location: string;
   applyUrl: string | null;
   employmentType: string | null;
@@ -22,7 +23,7 @@ function Stars({ n }: { n: number }) {
   );
 }
 
-export default function JobsModal({ topics, onClose }: { topics: string[]; onClose: () => void }) {
+export default function JobsModal({ topics, location, onClose }: { topics: string[]; location?: string | null; onClose: () => void }) {
   const [jobs,    setJobs]    = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState('');
@@ -31,6 +32,7 @@ export default function JobsModal({ topics, onClose }: { topics: string[]; onClo
     (async () => {
       try {
         const params = new URLSearchParams({ topics: topics.join(',') });
+        if (location) params.set('location', location);
         const res = await fetch(`${backendUrl}/api/jobs/search?${params}`);
         const data = await res.json() as { jobs?: Job[]; message?: string };
         if (!res.ok) throw new Error(data.message ?? 'Failed to fetch jobs');
@@ -76,17 +78,27 @@ export default function JobsModal({ topics, onClose }: { topics: string[]; onClo
             {jobs.map(job => (
               <div key={job.id} className="job-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="job-title">{job.title}</p>
-                    <p className="job-meta">
-                      {job.company}
-                      {job.location ? ` · ${job.location}` : ''}
-                    </p>
-                    {job.employmentType && (
-                      <span className="job-type-tag">
-                        {job.employmentType.replace(/_/g, ' ').toLowerCase()}
-                      </span>
+                  <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 0 }}>
+                    {job.logo && (
+                      <img
+                        src={job.logo}
+                        alt={job.company}
+                        style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'contain', flexShrink: 0, background: 'rgba(255,255,255,0.06)', padding: 2 }}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
                     )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p className="job-title">{job.title}</p>
+                      <p className="job-meta">
+                        {job.company}
+                        {job.location ? ` · ${job.location}` : ''}
+                      </p>
+                      {job.employmentType && (
+                        <span className="job-type-tag">
+                          {job.employmentType.replace(/_/g, ' ').toLowerCase()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                     <Stars n={job.rating} />

@@ -10,6 +10,7 @@ interface RawJob {
   job_id: string;
   job_title: string;
   employer_name: string;
+  employer_logo?: string;
   job_city?: string;
   job_state?: string;
   job_country?: string;
@@ -17,9 +18,9 @@ interface RawJob {
   job_employment_type?: string;
 }
 
-// GET /api/jobs/search?topics=Leadership,System+Design
+// GET /api/jobs/search?topics=Leadership,System+Design&location=Ottawa,+ON
 router.get('/search', async (req: Request, res: Response) => {
-  const { topics } = req.query as { topics?: string };
+  const { topics, location } = req.query as { topics?: string; location?: string };
   const topicList = topics ? topics.split(',').map(t => t.trim()).filter(Boolean) : [];
 
   if (!topicList.length) {
@@ -27,14 +28,18 @@ router.get('/search', async (req: Request, res: Response) => {
     return;
   }
 
+  const query = location
+    ? `${topicList.join(' ')} jobs in ${location}`
+    : `${topicList.join(' ')} jobs`;
+
   try {
     const response = await axios.get<{ data?: RawJob[] }>(
       'https://jsearch.p.rapidapi.com/search',
       {
-        params: { query: topicList.join(' '), page: '1', num_pages: '1' },
+        params: { query, num_pages: '1' },
         headers: {
-          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY!,
-          'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+          'x-rapidapi-key': process.env.RAPIDAPI_KEY!,
+          'x-rapidapi-host': 'jsearch.p.rapidapi.com',
         },
       }
     );
@@ -69,6 +74,7 @@ Return ONLY a JSON array of integers (one per job, same order), e.g. [4,2,5,3,1,
         id: j.job_id,
         title: j.job_title,
         company: j.employer_name,
+        logo: j.employer_logo ?? null,
         location: [j.job_city, j.job_state, j.job_country].filter(Boolean).join(', '),
         applyUrl: j.job_apply_link ?? null,
         employmentType: j.job_employment_type ?? null,
