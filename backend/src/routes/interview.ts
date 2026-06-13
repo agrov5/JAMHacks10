@@ -23,7 +23,7 @@ const bucket = storage.bucket(process.env.GCS_BUCKET_NAME!);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB
+  limits: { fileSize: 500 * 1024 * 1024 },
 });
 
 function runFfmpeg(command: ffmpeg.FfmpegCommand): Promise<void> {
@@ -42,21 +42,21 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     return;
   }
 
-  const inputPath  = tmpFile('.webm');
-  const audioPath  = tmpFile('.mp3');
-  const videoPath  = tmpFile('.mp4');
+  const inputPath = tmpFile('.webm');
+  const mp4Path   = tmpFile('.mp4');  // audio + video combined
+  const audioPath = tmpFile('.mp3');  // audio-only for ElevenLabs
 
   try {
     fs.writeFileSync(inputPath, req.file.buffer);
 
-    // Strip audio → video-only mp4 and extract audio mp3 in parallel
+    // Transcode to mp4 (keeping audio) and extract audio-only mp3 in parallel
     await Promise.all([
       runFfmpeg(
         ffmpeg(inputPath)
-          .noAudio()
           .videoCodec('libx264')
+          .audioCodec('aac')
           .outputOptions(['-preset fast', '-crf 23'])
-          .output(videoPath)
+          .output(mp4Path)
       ),
       runFfmpeg(
         ffmpeg(inputPath)
@@ -68,10 +68,9 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     ]);
 
     const timestamp = Date.now();
-    const videoKey = `interviews/${timestamp}-video.mp4`;
-    const audioKey = `interviews/${timestamp}-audio.mp3`;
+    const gcsKey = `interviews/${timestamp}.mp4`;
 
-    // Upload video and audio to GCS + send audio to ElevenLabs — all in parallel
+    // Upload combined mp4 to GCS and send audio to ElevenLabs in parallel
     const form = new FormData();
     form.append('file', fs.createReadStream(audioPath), {
       filename: 'audio.mp3',
@@ -79,27 +78,22 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     });
     form.append('model_id', 'scribe_v1');
 
-    const [, , sttResponse] = await Promise.all([
-      bucket.upload(videoPath, { destination: videoKey, metadata: { contentType: 'video/mp4' } }),
-      bucket.upload(audioPath, { destination: audioKey, metadata: { contentType: 'audio/mpeg' } }),
+    const [, sttResponse] = await Promise.all([
+      bucket.upload(mp4Path, { destination: gcsKey, metadata: { contentType: 'video/mp4' } }),
       axios.post('https://api.elevenlabs.io/v1/speech-to-text', form, {
         headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, ...form.getHeaders() },
       }),
     ]);
 
-    const base = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}`;
+    const videoUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${gcsKey}`;
     const transcript: string = sttResponse.data.text ?? '';
 
-    res.json({
-      videoUrl: `${base}/${videoKey}`,
-      audioUrl: `${base}/${audioKey}`,
-      transcript,
-    });
+    res.json({ videoUrl, transcript });
   } catch (err) {
     console.error('Interview submit error:', err);
     res.status(500).json({ message: 'Failed to process video' });
   } finally {
-    for (const f of [inputPath, audioPath, videoPath]) {
+    for (const f of [inputPath, mp4Path, audioPath]) {
       try { fs.unlinkSync(f); } catch {}
     }
   }
