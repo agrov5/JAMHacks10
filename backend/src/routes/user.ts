@@ -45,8 +45,9 @@ router.put('/resume', upload.single('resume'), async (req: Request, res: Respons
       metadata: { contentType: req.file.mimetype || 'application/pdf' },
     });
 
-    // Ask Gemini to suggest topics specific to this candidate's resume
+    // Ask Gemini to suggest topics and extract location from resume
     let suggestedGoals: string[] = [];
+    let extractedLocation: string | null = null;
     try {
       const geminiResult = await geminiModel.generateContent([
         {
@@ -55,21 +56,27 @@ router.put('/resume', upload.single('resume'), async (req: Request, res: Respons
             mimeType: 'application/pdf',
           },
         },
-        `You are an expert interview coach. Analyse this resume and suggest 4–6 specific interview practice topics tailored to this candidate's background, skills, and experience level. Topics should be concise (2–4 words) and directly relevant to the person's career (e.g. "System Design", "Product Analytics", "Cross-team Collaboration", "Python Development"). Return ONLY a valid JSON array of strings, no extra text. Example: ["System Design","Python Development","Cross-team Collaboration"]`,
+        `You are an expert interview coach. Analyse this resume and return a JSON object with two keys:
+1. "topics": an array of 4–6 specific interview practice topics tailored to this candidate's background (2–4 words each, e.g. "System Design", "Python Development").
+2. "location": the candidate's current city/region if clearly stated on the resume (e.g. "San Francisco, CA"), or null if not found.
+Return ONLY valid JSON, no extra text. Example: {"topics":["System Design","Python Development"],"location":"Toronto, ON"}`,
       ]);
       const raw = geminiResult.response.text().trim();
-      const match = raw.match(/\[[\s\S]*?\]/);
-      if (match) {
-        suggestedGoals = (JSON.parse(match[0]) as string[]).slice(0, 6);
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]) as { topics?: string[]; location?: string | null };
+        if (Array.isArray(parsed.topics)) suggestedGoals = parsed.topics.slice(0, 6);
+        if (parsed.location) extractedLocation = parsed.location;
       }
     } catch {
       // Non-critical — user can still pick topics manually
     }
 
     user.resumeGcsKey = gcsKey;
+    if (extractedLocation) user.location = extractedLocation;
     await user.save();
 
-    res.json({ resumeGcsKey: gcsKey, suggestedGoals });
+    res.json({ resumeGcsKey: gcsKey, suggestedGoals, extractedLocation });
   } catch (err) {
     console.error('Resume upload error:', err);
     res.status(500).json({ message: 'Failed to upload resume' });
@@ -128,6 +135,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         username: user.username,
+        location: user.location ?? null,
         createdAt: user.createdAt,
       },
       resumeUrl,
@@ -137,6 +145,22 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Profile fetch error:', err);
     res.status(500).json({ message: 'Failed to fetch profile' });
+  }
+});
+
+// PATCH /api/user/:userId — update editable profile fields (location)
+router.patch('/:userId', async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { location } = req.body as { location?: string };
+  try {
+    const user = await User.findById(userId);
+    if (!user) { res.status(404).json({ message: 'User not found' }); return; }
+    if (location !== undefined) user.location = location.trim() || undefined;
+    await user.save();
+    res.json({ location: user.location ?? null });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ message: 'Failed to update profile' });
   }
 });
 

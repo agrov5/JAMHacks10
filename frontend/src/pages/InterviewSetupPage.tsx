@@ -75,7 +75,7 @@ export default function InterviewSetupPage() {
     <div className="steps-page">
       <nav className="page-nav">
         <Logo />
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
           {topics.map(t => (
             <span key={t} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 100, padding: '3px 10px', fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
               {t}

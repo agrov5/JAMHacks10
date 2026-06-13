@@ -17,7 +17,7 @@ interface SessionData {
 }
 
 interface ProfileData {
-  user: { id: string; email: string; name: string; username: string; createdAt: string };
+  user: { id: string; email: string; name: string; username: string; location: string | null; createdAt: string };
   resumeUrl: string | null;
   hasResume: boolean;
   sessions: SessionData[];
@@ -43,6 +43,9 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [jobTopics, setJobTopics] = useState<string[] | null>(null);
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
+  const [savingLocation, setSavingLocation] = useState(false);
 
   const storedUser = localStorage.getItem('user');
   const userId: string = storedUser ? JSON.parse(storedUser).id : '';
@@ -62,6 +65,21 @@ export default function ProfilePage() {
   };
 
   useEffect(() => { fetchProfile(); }, []);
+
+  const saveLocation = async (value: string) => {
+    setSavingLocation(true);
+    try {
+      await fetch(`${backendUrl}/api/user/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: value }),
+      });
+      await fetchProfile();
+    } finally {
+      setSavingLocation(false);
+      setEditingLocation(false);
+    }
+  };
 
   const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,6 +152,41 @@ export default function ProfilePage() {
               <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.4px' }}>{user.name}</h1>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 3 }}>{user.email}</p>
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>@{user.username}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                {editingLocation ? (
+                  <>
+                    <input
+                      autoFocus
+                      value={locationInput}
+                      onChange={e => setLocationInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveLocation(locationInput); if (e.key === 'Escape') setEditingLocation(false); }}
+                      placeholder="City, Country"
+                      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, color: '#fff', fontSize: 12, padding: '4px 10px', outline: 'none', width: 160 }}
+                    />
+                    <button
+                      onClick={() => saveLocation(locationInput)}
+                      disabled={savingLocation}
+                      style={{ fontSize: 11, padding: '4px 10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}
+                    >
+                      {savingLocation ? 'Saving…' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => setEditingLocation(false)}
+                      style={{ fontSize: 11, padding: '4px 8px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => { setLocationInput(user.location ?? ''); setEditingLocation(true); }}
+                    style={{ fontSize: 12, color: user.location ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 5 }}
+                  >
+                    <span>📍</span>
+                    <span>{user.location ?? 'Add location'}</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

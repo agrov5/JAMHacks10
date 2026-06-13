@@ -7,6 +7,7 @@ export interface IUser extends Document {
   allowAI: boolean;
   username: string;
   resumeGcsKey?: string;
+  location?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +20,7 @@ const UserSchema = new Schema<IUser>(
     allowAI: { type: Boolean, default: false },
     username: { type: String, required: true, unique: true, trim: true },
     resumeGcsKey: { type: String, default: null },
+    location: { type: String, default: null },
   },
   {
     timestamps: true,
