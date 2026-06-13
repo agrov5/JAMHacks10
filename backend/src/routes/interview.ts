@@ -106,7 +106,11 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
       { headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, ...form.getHeaders() } }
     );
 
-    const videoUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${gcsKey}`;
+    const [videoUrl] = await gcsFile.getSignedUrl({
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days (v4 max)
+    });
     const transcript: string = sttResponse.data.text ?? '';
 
     // Analyse transcript with Gemini
