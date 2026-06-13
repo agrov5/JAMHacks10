@@ -85,6 +85,9 @@ web_modules/
 secrets/
 .env.production
 
+# Firebase service account key (should not be committed)
+firebase-service-account.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -145,3 +148,4 @@ dist
 package-lock.json
 
 dist/
+firebase-service-creds.json

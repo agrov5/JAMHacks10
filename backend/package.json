@@ -12,7 +12,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "@types/cors": "^2.8.19",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2",
+    "firebase-admin": "^14.0.0",
+    "mongodb": "^7.3.0",
+    "mongoose": "^9.7.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
