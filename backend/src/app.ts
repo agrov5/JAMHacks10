@@ -2,6 +2,7 @@ import express, { type Express } from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth';
 import interviewRoutes from './routes/interview';
+import adminRoutes from './routes/admin';
 
 export const app: Express = express();
 
@@ -21,3 +22,6 @@ app.use('/api/auth', authRoutes);
 
 // Interview routes
 app.use('/api/interview', interviewRoutes);
+
+// Admin routes (Basic Auth protected)
+app.use('/api/admin', adminRoutes);

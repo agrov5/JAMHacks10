@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import RobotEmoji from '../components/RobotEmoji';
+import Logo from '../components/Logo';
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
@@ -21,7 +22,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-form-side">
         <nav className="page-nav">
-          <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
+          <Logo />
         </nav>
 
         <div className="auth-form-inner">

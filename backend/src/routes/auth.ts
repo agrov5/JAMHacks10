@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { auth as firebaseAuth } from '../config/firebase';
 import { User } from '../models/User';
+import { isSignupsEnabled } from '../config/signupState';
 
 const router = Router();
 
@@ -20,11 +21,27 @@ router.post('/google', async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
     if (!user) {
-      res.status(403).json({ message: 'No account found for this Google account. Please contact your administrator.' });
-      return;
+      if (!isSignupsEnabled()) {
+        res.status(403).json({ message: 'No account found for this Google account. Please contact your administrator.' });
+        return;
+      }
+
+      // Auto-create the user when sign-ups are open
+      const base = email.split('@')[0].replace(/[^a-z0-9]/gi, '').toLowerCase() || 'user';
+      let username = base;
+      if (await User.findOne({ username })) {
+        username = `${base}${Math.floor(Math.random() * 9000) + 1000}`;
+      }
+      user = await User.create({
+        email,
+        name: decodedToken.name ?? base,
+        password: 'google-oauth-placeholder',
+        username,
+        allowAI: false,
+      });
     }
 
     res.status(200).json({

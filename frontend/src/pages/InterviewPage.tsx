@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Logo from '../components/Logo';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 const SAMPLE_QUESTION =
@@ -16,6 +17,7 @@ export default function InterviewPage() {
   const streamRef   = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef   = useRef<Blob[]>([]);
+  const mimeTypeRef = useRef<string>('');
 
   const [camActive, setCamActive] = useState(false);
   const [status, setStatus]       = useState<Status>('idle');
@@ -42,9 +44,15 @@ export default function InterviewPage() {
     if (!streamRef.current) return;
     chunksRef.current = [];
 
-    const mimeType = ['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4'].find(
-      m => MediaRecorder.isTypeSupported(m)
-    ) ?? '';
+    const mimeType = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=h264,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+      'video/mp4;codecs=avc1',
+      'video/mp4',
+    ].find(m => MediaRecorder.isTypeSupported(m)) ?? '';
+    mimeTypeRef.current = mimeType;
 
     const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
     recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
@@ -63,7 +71,7 @@ export default function InterviewPage() {
     setStatus('uploading');
     setErrorMsg('');
     try {
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current || 'video/webm' });
       const storedUser = localStorage.getItem('user');
       const userId: string = storedUser ? JSON.parse(storedUser).id : '';
 
@@ -114,7 +122,7 @@ export default function InterviewPage() {
   return (
     <div className="interview-page">
       <nav className="page-nav">
-        <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
+        <Logo />
         {topics.length > 0 && (
           <div style={{ display: 'flex', gap: 6 }}>
             {topics.map(t => (

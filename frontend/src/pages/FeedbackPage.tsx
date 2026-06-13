@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import Logo from '../components/Logo';
 
 export default function FeedbackPage() {
   const location = useLocation();
@@ -15,7 +16,7 @@ export default function FeedbackPage() {
   return (
     <div className="steps-page">
       <nav className="page-nav">
-        <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
+        <Logo />
         {topics.length > 0 && (
           <div style={{ display: 'flex', gap: 6 }}>
             {topics.map(t => (

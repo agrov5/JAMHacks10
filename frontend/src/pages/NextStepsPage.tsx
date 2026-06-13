@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import Logo from '../components/Logo';
 
 const STEPS = [
   { num: 1, text: 'Decide topics for you to respond to' },
@@ -14,7 +15,7 @@ export default function NextStepsPage() {
   return (
     <div className="steps-page">
       <nav className="page-nav">
-        <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
+        <Logo />
       </nav>
 
       <main className="steps-main">

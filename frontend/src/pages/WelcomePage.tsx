@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RobotEmoji from '../components/RobotEmoji';
+import Logo from '../components/Logo';
 
 const FULL_TEXT = 'Welcome to CipherAI';
 const BUBBLES = ['Hi there! 👋', 'Ready to practice?', "Let's ace that interview!"];
@@ -29,7 +30,7 @@ export default function WelcomePage() {
   return (
     <div className="welcome-page">
       <nav>
-        <span className="logo"><img src="/Cipher_AI.png" alt="CipherAI" style={{ height: 28, width: 'auto' }} draggable={false} /></span>
+        <Logo />
       </nav>
 
       <main className="welcome-main">
