@@ -71,18 +71,12 @@ export default function InterviewPage() {
   };
 
   const speakQuestion = (text: string): Promise<void> => {
-    const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY as string;
     const voiceId = (import.meta.env.VITE_ELEVENLABS_VOICE_ID as string) || '21m00Tcm4TlvDq8ikWAM';
-    if (!apiKey || apiKey === 'your_elevenlabs_api_key_here') return Promise.resolve();
 
-    return fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    return fetch(`${backendUrl}/api/interview/tts`, {
       method: 'POST',
-      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voiceId }),
     })
       .then(res => { if (!res.ok) return; return res.blob(); })
       .then(blob => {

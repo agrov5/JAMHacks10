@@ -301,4 +301,27 @@ router.post('/submit-batch', batchFields, async (req: Request, res: Response) =>
   }
 });
 
+// ── POST /api/interview/tts ───────────────────────────────────────────────────
+router.post('/tts', async (req: Request, res: Response) => {
+  const { text, voiceId } = req.body as { text?: string; voiceId?: string };
+  if (!text) { res.status(400).json({ message: 'text is required' }); return; }
+
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) { res.status(503).json({ message: 'TTS not configured' }); return; }
+
+  const vid = voiceId || '21m00Tcm4TlvDq8ikWAM';
+  try {
+    const upstream = await axios.post(
+      `https://api.elevenlabs.io/v1/text-to-speech/${vid}`,
+      { text, model_id: 'eleven_monolingual_v1', voice_settings: { stability: 0.5, similarity_boost: 0.75 } },
+      { headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' }, responseType: 'arraybuffer' },
+    );
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(upstream.data);
+  } catch (err: any) {
+    console.error('TTS proxy error:', err?.response?.status, err?.message);
+    res.status(502).json({ message: 'TTS request failed' });
+  }
+});
+
 export default router;
