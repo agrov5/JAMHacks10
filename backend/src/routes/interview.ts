@@ -23,6 +23,27 @@ Analyse the candidate's response below and provide structured feedback covering:
 
 Be specific, constructive, and concise.`;
 
+function buildPromptWithAnalytics(basePrompt: string, analytics?: {
+  spatialDistribution: number;
+  handGestures: number;
+  eyeContact: number;
+  posture: number;
+}): string {
+  if (!analytics) return basePrompt;
+
+  const analyticsSection = `
+
+## Non-Verbal Communication Analytics (0-100 scale):
+- Spatial Distribution (Face-to-camera distance): ${analytics.spatialDistribution}/100
+- Hand Gestures (Movement frequency): ${analytics.handGestures}/100
+- Eye Contact (Camera engagement): ${analytics.eyeContact}/100
+- Posture (Body alignment): ${analytics.posture}/100
+
+Please incorporate these non-verbal metrics into your feedback. Comment on their body language, engagement, and professional presence based on these scores.`;
+
+  return basePrompt + analyticsSection;
+}
+
 function extractScore(feedback: string): number | null {
   const match = feedback.match(/overall\s*score[^0-9]*(\d+(?:\.\d+)?)/i);
   if (!match) return null;
@@ -63,9 +84,14 @@ function tmpFile(ext: string): string {
 router.post('/submit', upload.single('video'), async (req: Request, res: Response) => {
   if (!req.file) { res.status(400).json({ message: 'No video file provided' }); return; }
 
-  const { userId, goals: goalsRaw } = req.body as { userId?: string; goals?: string };
+  const { userId, goals: goalsRaw, analytics: analyticsRaw } = req.body as { 
+    userId?: string; 
+    goals?: string;
+    analytics?: string;
+  };
   if (!userId) { res.status(400).json({ message: 'userId is required' }); return; }
   const goals: string[] = goalsRaw ? JSON.parse(goalsRaw) : [];
+  const analytics = analyticsRaw ? JSON.parse(analyticsRaw) : undefined;
 
   const audioPath = tmpFile('.mp3');
   try {
@@ -91,8 +117,9 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
     const [videoUrl] = await gcsFile.getSignedUrl({ version: 'v4', action: 'read', expires: Date.now() + 7 * 24 * 60 * 60 * 1000 });
     const transcript: string = sttResponse.data.text ?? '';
 
+    const promptWithAnalytics = buildPromptWithAnalytics(ANALYSIS_PROMPT, analytics);
     const geminiResult = await geminiModel.generateContent(
-      `${ANALYSIS_PROMPT}\n\nGoals: ${goals.join(', ')}\n\nTranscript:\n${transcript}`
+      `${promptWithAnalytics}\n\nGoals: ${goals.join(', ')}\n\nTranscript:\n${transcript}`
     );
     const feedback = geminiResult.response.text();
     const overallScore = extractScore(feedback);
@@ -153,17 +180,19 @@ interface BatchResult {
 }
 
 router.post('/submit-batch', batchFields, async (req: Request, res: Response) => {
-  const { userId, goals: goalsRaw, questions: questionsRaw, difficulty = 'Medium' } = req.body as {
+  const { userId, goals: goalsRaw, questions: questionsRaw, difficulty = 'Medium', analytics: analyticsRaw } = req.body as {
     userId?: string;
     goals?: string;
     questions?: string;
     difficulty?: string;
+    analytics?: string;
   };
 
   if (!userId) { res.status(400).json({ message: 'userId is required' }); return; }
 
   const goals: string[] = goalsRaw ? (JSON.parse(goalsRaw) as string[]) : [];
   const questions: string[] = questionsRaw ? (JSON.parse(questionsRaw) as string[]) : [];
+  const analytics = analyticsRaw ? JSON.parse(analyticsRaw) : undefined;
   const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
   if (!files || Object.keys(files).length === 0) {
@@ -204,8 +233,9 @@ router.post('/submit-batch', batchFields, async (req: Request, res: Response) =>
 
       const transcript: string = sttResponse.data.text ?? '';
 
+      const promptWithAnalytics = buildPromptWithAnalytics(ANALYSIS_PROMPT, analytics);
       const geminiResult = await geminiModel.generateContent(
-        `${ANALYSIS_PROMPT}\n\nQuestion: ${question}\nDifficulty: ${difficulty}\nGoals: ${goals.join(', ')}\n\nCandidate's Transcript:\n${transcript}`
+        `${promptWithAnalytics}\n\nQuestion: ${question}\nDifficulty: ${difficulty}\nGoals: ${goals.join(', ')}\n\nCandidate's Transcript:\n${transcript}`
       );
       const feedback = geminiResult.response.text();
       const overallScore = extractScore(feedback);
