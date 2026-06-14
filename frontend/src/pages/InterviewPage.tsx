@@ -257,6 +257,7 @@ export default function InterviewPage() {
               {recLeft !== null && <span>{fmtTime(recLeft)}</span>}
             </div>
           )}
+
         </div>
 
         {/* Question text + controls */}

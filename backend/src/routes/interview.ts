@@ -12,16 +12,56 @@ import { getServiceAccount, GCPServiceAccount } from '../util/serviceAccount';
 import { Session } from '../models/Session';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const ANALYSIS_PROMPT = process.env.GEMINI_PROMPT ?? `You are an expert interview coach.
-Analyse the candidate's response below and provide structured feedback covering:
-1. Relevance & Content
-2. Clarity & Communication
-3. Structure (STAR method if applicable)
-4. Strengths
-5. Areas for Improvement
-6. Overall Score (1–10)
+const ANALYSIS_PROMPT = process.env.GEMINI_PROMPT ?? `You are an expert interview coach who evaluates both verbal responses and non-verbal communication.
+Analyse the candidate's response and provide feedback using EXACTLY this markdown structure — do not skip or rename any section, and always include every score:
 
-Be specific, constructive, and concise.`;
+---
+
+## 🗣️ Verbal Feedback
+
+**Relevance & Content — [X/5]:** [Did the answer address the question directly? Was it substantive and specific?]
+
+**Clarity & Communication — [X/5]:** [Was the delivery clear, well-paced, and easy to follow?]
+
+**Structure — [X/5]:** [Was a framework like STAR used? Was the response organised logically?]
+
+**Strengths:** [2–3 specific things done well verbally]
+
+**Areas for Improvement:** [2–3 specific, actionable verbal improvement points]
+
+### Verbal Score: [X/5]
+
+---
+
+## 👁️ Non-Verbal Communication
+
+**📏 Spatial Distribution — [X/5]:** [Comment on face-to-camera distance and framing. If a score is provided, reference it explicitly.]
+
+**👋 Hand Gestures — [X/5]:** [Comment on gesture use and whether it aided or distracted from the message. Reference score if provided.]
+
+**👁️ Eye Contact — [X/5]:** [Comment on camera engagement and whether it conveyed confidence. Reference score if provided.]
+
+**🧍 Posture — [X/5]:** [Comment on body alignment and professional presence. Reference score if provided.]
+
+**Strengths:** [2–3 specific non-verbal strengths]
+
+**Areas for Improvement:** [2–3 specific, actionable non-verbal improvement points]
+
+### Non-Verbal Score: [X/5]
+
+---
+
+## 🏆 Overall Score: [X/10]
+_(Verbal [X/5] + Non-Verbal [X/5])_
+
+[One sentence summary of the candidate's overall performance.]
+
+Scoring rules:
+- Each subcategory score is independently assessed out of 5.
+- Verbal Score /5 = holistic judgement of the three verbal subcategories.
+- Non-Verbal Score /5 = holistic judgement of the four non-verbal subcategories.
+- Overall Score /10 = Verbal Score + Non-Verbal Score.
+- Be specific, constructive, and concise. Do not skip any section or score.`;
 
 function buildPromptWithAnalytics(basePrompt: string, analytics?: {
   spatialDistribution: number;
@@ -31,17 +71,17 @@ function buildPromptWithAnalytics(basePrompt: string, analytics?: {
 }): string {
   if (!analytics) return basePrompt;
 
-  const analyticsSection = `
+  const scores = `
 
-## Non-Verbal Communication Analytics (0-100 scale):
-- Spatial Distribution (Face-to-camera distance): ${analytics.spatialDistribution}/100
-- Hand Gestures (Movement frequency): ${analytics.handGestures}/100
-- Eye Contact (Camera engagement): ${analytics.eyeContact}/100
-- Posture (Body alignment): ${analytics.posture}/100
+> **Real-time non-verbal scores captured during this session (0–100 scale):**
+> - 📏 Spatial Distribution: **${analytics.spatialDistribution}/100**
+> - 👋 Hand Gestures: **${analytics.handGestures}/100**
+> - 👁️ Eye Contact: **${analytics.eyeContact}/100**
+> - 🧍 Posture: **${analytics.posture}/100**
+>
+> Reference these scores directly in the Non-Verbal Communication section of your feedback.`;
 
-Please incorporate these non-verbal metrics into your feedback. Comment on their body language, engagement, and professional presence based on these scores.`;
-
-  return basePrompt + analyticsSection;
+  return basePrompt + scores;
 }
 
 function extractScore(feedback: string): number | null {
