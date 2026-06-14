@@ -9,7 +9,7 @@ import jobRoutes from './routes/jobs';
 export const app: Express = express();
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  origin: [process.env.CORS_ORIGIN1 || "", process.env.CORS_ORIGIN2 || "",'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
