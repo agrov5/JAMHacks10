@@ -4,7 +4,7 @@ import Logo from '../components/Logo';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-type Phase = 'loading' | 'prep' | 'recording' | 'uploading' | 'error';
+type Phase = 'loading' | 'speaking' | 'prep' | 'recording' | 'uploading' | 'error';
 interface Answer { blob: Blob; mimeType: string; }
 
 function fmtTime(s: number) { return `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`; }
@@ -34,6 +34,8 @@ export default function InterviewPage() {
   const chunksRef   = useRef<Blob[]>([]);
   const mimeTypeRef = useRef('');
   const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const ttsAudioRef      = useRef<HTMLAudioElement | null>(null);
+  const ttsCancelledRef  = useRef(false);
 
   // Session tracking via refs to avoid stale closures in callbacks
   const sessRef = useRef<{ questions: string[]; currentQ: number; answers: Answer[] }>({
@@ -57,6 +59,45 @@ export default function InterviewPage() {
   // ── Helpers (all use refs → no stale-closure issues) ─────────────────────────
   const clearTimer = () => {
     if (timerRef.current !== null) { clearInterval(timerRef.current); timerRef.current = null; }
+  };
+
+  const stopTTS = () => {
+    ttsCancelledRef.current = true;
+    if (ttsAudioRef.current) {
+      ttsAudioRef.current.pause();
+      ttsAudioRef.current.src = '';
+      ttsAudioRef.current = null;
+    }
+  };
+
+  const speakQuestion = (text: string): Promise<void> => {
+    const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY as string;
+    const voiceId = (import.meta.env.VITE_ELEVENLABS_VOICE_ID as string) || '21m00Tcm4TlvDq8ikWAM';
+    if (!apiKey || apiKey === 'your_elevenlabs_api_key_here') return Promise.resolve();
+
+    return fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      }),
+    })
+      .then(res => { if (!res.ok) return; return res.blob(); })
+      .then(blob => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        return new Promise<void>(resolve => {
+          const audio = new Audio(url);
+          ttsAudioRef.current = audio;
+          const done = () => { URL.revokeObjectURL(url); ttsAudioRef.current = null; resolve(); };
+          audio.onended = done;
+          audio.onerror = done;
+          audio.play().catch(done);
+        });
+      })
+      .catch(() => undefined);
   };
 
   const startRecording = () => {
@@ -92,14 +133,8 @@ export default function InterviewPage() {
     }
   };
 
-  const enterPrep = () => {
-    clearTimer();
-    const q = sessRef.current.currentQ;
-    setCurrentQ(q);
-    setQuestion(sessRef.current.questions[q] ?? '');
-
+  const startPrepTimer = () => {
     if (prepTime === 0) { startRecording(); return; }
-
     setPhase('prep');
     let t = prepTime;
     setPrepLeft(t);
@@ -108,6 +143,21 @@ export default function InterviewPage() {
       setPrepLeft(t);
       if (t <= 0) { clearTimer(); startRecording(); }
     }, 1000);
+  };
+
+  const enterPrep = () => {
+    clearTimer();
+    stopTTS();
+    ttsCancelledRef.current = false;
+    const q = sessRef.current.currentQ;
+    setCurrentQ(q);
+    const questionText = sessRef.current.questions[q] ?? '';
+    setQuestion(questionText);
+    setPhase('speaking');
+
+    speakQuestion(questionText).then(() => {
+      if (!ttsCancelledRef.current) startPrepTimer();
+    });
   };
 
   // Updated on every render so onStopRef.current always reads latest closures
@@ -167,7 +217,7 @@ export default function InterviewPage() {
       })
       .catch((err: unknown) => setCamError(err instanceof Error ? err.message : String(err)));
 
-    return () => { streamRef.current?.getTracks().forEach(t => t.stop()); clearTimer(); };
+    return () => { streamRef.current?.getTracks().forEach(t => t.stop()); clearTimer(); stopTTS(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -194,7 +244,7 @@ export default function InterviewPage() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stopManually = () => { clearTimer(); recorderRef.current?.stop(); recorderRef.current = null; };
-  const skipPrep     = () => { clearTimer(); startRecording(); };
+  const skipPrep     = () => { stopTTS(); clearTimer(); startRecording(); };
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -216,7 +266,7 @@ export default function InterviewPage() {
         {/* Webcam box — always mounted so videoRef is set before stream arrives */}
         <div
           className="webcam-box"
-          style={{ display: phase === 'prep' || phase === 'recording' ? undefined : 'none' }}
+          style={{ display: phase === 'speaking' || phase === 'prep' || phase === 'recording' ? undefined : 'none' }}
         >
           <video
             ref={videoRef}
@@ -229,6 +279,35 @@ export default function InterviewPage() {
               <span className="webcam-off-icon">📷</span>
               <span>{camError || 'Waiting for camera…'}</span>
               {camError && <span style={{ fontSize: 11, color: 'rgba(255,100,100,0.7)', maxWidth: 280, textAlign: 'center' }}>{camError}</span>}
+            </div>
+          )}
+
+          {/* Speaking overlay */}
+          {phase === 'speaking' && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', gap: 12 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+                Reading question
+              </p>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {[0, 1, 2].map(i => (
+                  <span
+                    key={i}
+                    style={{
+                      width: 8, height: 8, borderRadius: '50%', background: '#fff',
+                      animation: 'tts-pulse 1.2s ease-in-out infinite',
+                      animationDelay: `${i * 0.2}s`,
+                      display: 'inline-block',
+                    }}
+                  />
+                ))}
+              </div>
+              <button
+                className="btn-proceed"
+                style={{ fontSize: 12, padding: '6px 20px', marginTop: 6 }}
+                onClick={skipPrep}
+              >
+                Skip
+              </button>
             </div>
           )}
 
@@ -260,7 +339,7 @@ export default function InterviewPage() {
         </div>
 
         {/* Question text + controls */}
-        {(phase === 'prep' || phase === 'recording') && (
+        {(phase === 'speaking' || phase === 'prep' || phase === 'recording') && (
           <>
             <p className="question-label">Question {currentQ + 1} of {totalQ} · {difficulty}</p>
             <p className="question-text">{question}</p>
