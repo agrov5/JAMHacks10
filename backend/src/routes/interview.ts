@@ -23,6 +23,13 @@ Analyse the candidate's response below and provide structured feedback covering:
 
 Be specific, constructive, and concise.`;
 
+function extractScore(feedback: string): number | null {
+  const match = feedback.match(/overall\s*score[^0-9]*(\d+(?:\.\d+)?)/i);
+  if (!match) return null;
+  const val = parseFloat(match[1]);
+  return val >= 1 && val <= 10 ? val : null;
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const geminiModel = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
 
@@ -88,9 +95,10 @@ router.post('/submit', upload.single('video'), async (req: Request, res: Respons
       `${ANALYSIS_PROMPT}\n\nGoals: ${goals.join(', ')}\n\nTranscript:\n${transcript}`
     );
     const feedback = geminiResult.response.text();
-    const session = await Session.create({ userId, videoUrl, transcript, feedback, goals });
+    const overallScore = extractScore(feedback);
+    const session = await Session.create({ userId, videoUrl, transcript, feedback, goals, overallScore });
 
-    res.json({ sessionId: session._id, videoUrl, transcript, feedback });
+    res.json({ sessionId: session._id, videoUrl, transcript, feedback, overallScore });
   } catch (err) {
     console.error('Interview submit error:', err);
     res.status(500).json({ message: 'Failed to process video' });
@@ -141,6 +149,7 @@ interface BatchResult {
   transcript: string;
   feedback: string;
   videoUrl: string;
+  overallScore: number | null;
 }
 
 router.post('/submit-batch', batchFields, async (req: Request, res: Response) => {
@@ -199,9 +208,10 @@ router.post('/submit-batch', batchFields, async (req: Request, res: Response) =>
         `${ANALYSIS_PROMPT}\n\nQuestion: ${question}\nDifficulty: ${difficulty}\nGoals: ${goals.join(', ')}\n\nCandidate's Transcript:\n${transcript}`
       );
       const feedback = geminiResult.response.text();
-      const session = await Session.create({ userId, videoUrl, transcript, feedback, goals });
+      const overallScore = extractScore(feedback);
+      const session = await Session.create({ userId, videoUrl, transcript, feedback, goals, overallScore });
 
-      return { sessionId: session._id, question, transcript, feedback, videoUrl };
+      return { sessionId: session._id, question, transcript, feedback, videoUrl, overallScore };
     } finally {
       try { fs.unlinkSync(audioPath); } catch { /* ignore */ }
     }

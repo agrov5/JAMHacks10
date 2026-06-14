@@ -14,6 +14,7 @@ interface SessionData {
   transcript: string;
   videoUrl: string;
   createdAt: string;
+  overallScore: number | null;
 }
 
 interface ProfileData {
@@ -128,6 +129,13 @@ export default function ProfilePage() {
     <div className="profile-page">
       <nav className="page-nav">
         <Logo />
+        <button
+          className="btn-proceed"
+          style={{ fontSize: 12, padding: '6px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.55)' }}
+          onClick={() => navigate('/stats')}
+        >
+          Stats
+        </button>
       </nav>
 
       <main className="profile-main">
@@ -267,14 +275,27 @@ export default function ProfilePage() {
               {sessions.map(s => (
                 <div key={s._id} className="session-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       {s.goals.map(g => (
                         <span key={g} className="session-goal-tag">{g}</span>
                       ))}
                     </div>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
-                      {formatDate(s.createdAt)}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                      {s.overallScore != null && (
+                        <span style={{
+                          fontSize: 12, fontWeight: 700, padding: '2px 9px',
+                          borderRadius: 100,
+                          background: s.overallScore >= 8 ? 'rgba(74,222,128,0.12)' : s.overallScore >= 6 ? 'rgba(250,204,21,0.1)' : 'rgba(248,113,113,0.1)',
+                          border: `1px solid ${s.overallScore >= 8 ? 'rgba(74,222,128,0.3)' : s.overallScore >= 6 ? 'rgba(250,204,21,0.25)' : 'rgba(248,113,113,0.25)'}`,
+                          color: s.overallScore >= 8 ? '#4ade80' : s.overallScore >= 6 ? '#facc15' : '#f87171',
+                        }}>
+                          {s.overallScore}/10
+                        </span>
+                      )}
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+                        {formatDate(s.createdAt)}
+                      </span>
+                    </div>
                   </div>
                   {s.feedback && (
                     <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginTop: 10 }}>

@@ -8,6 +8,7 @@ import InterviewSetupPage from './pages/InterviewSetupPage';
 import InterviewPage from './pages/InterviewPage';
 import FeedbackPage from './pages/FeedbackPage';
 import ProfilePage from './pages/ProfilePage';
+import StatsPage from './pages/StatsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/interview"       element={<ProtectedRoute><InterviewPage /></ProtectedRoute>} />
         <Route path="/feedback"        element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
         <Route path="/profile"         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/stats"           element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

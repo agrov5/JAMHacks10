@@ -6,17 +6,19 @@ export interface ISession extends Document {
   transcript: string;
   feedback: string;
   goals: string[];
+  overallScore: number | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const SessionSchema = new Schema<ISession>(
   {
-    userId:     { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    videoUrl:   { type: String, required: true },
-    transcript: { type: String, default: '' },
-    feedback:   { type: String, default: '' },
-    goals:      { type: [String], default: [] },
+    userId:       { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    videoUrl:     { type: String, required: true },
+    transcript:   { type: String, default: '' },
+    feedback:     { type: String, default: '' },
+    goals:        { type: [String], default: [] },
+    overallScore: { type: Number, default: null },
   },
   { timestamps: true }
 );
