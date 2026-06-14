@@ -76,6 +76,39 @@ export default function FeedbackPage() {
 
             {expanded === i && (
               <div className="feedback-question-body">
+                {/* Non-Verbal Analytics Section - Show if analytics exist in feedback */}
+                {r.feedback && (
+                  r.feedback.includes('Non-Verbal') || r.feedback.includes('Spatial Distribution') ||
+                  r.feedback.includes('Hand Gestures') || r.feedback.includes('Eye Contact') ||
+                  r.feedback.includes('Posture')
+                ) && (
+                  <div className="feedback-section" style={{ background: 'rgba(33, 150, 243, 0.08)', borderLeft: '3px solid #2196f3', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+                    <p className="feedback-section-label" style={{ color: '#2196f3' }}>📊 Non-Verbal Communication Analytics</p>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: '12px' }}>
+                      Your body language and presentation were analyzed in real-time
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                      {[
+                        { label: '📏 Spatial', metric: 'Spatial Distribution' },
+                        { label: '👋 Gestures', metric: 'Hand Gestures' },
+                        { label: '👁️ Eye Contact', metric: 'Eye Contact' },
+                        { label: '🧍 Posture', metric: 'Posture' }
+                      ].map(({ label, metric }) => {
+                        const match = r.feedback.match(new RegExp(`${metric}[^0-9]*(\\d+)\\s*/\\s*100`, 'i'));
+                        if (!match) return null;
+                        const score = parseInt(match[1]);
+                        const color = score >= 80 ? '#4caf50' : score >= 60 ? '#ff9800' : '#f44336';
+                        return (
+                          <div key={metric} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '10px', textAlign: 'center' }}>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>{label}</div>
+                            <div style={{ fontSize: 22, fontWeight: '700', color }}>{score}/100</div>
+                          </div>
+                        );
+                      }).filter(Boolean)}
+                    </div>
+                  </div>
+                )}
+
                 <div className="feedback-section">
                   <p className="feedback-section-label">AI Analysis</p>
                   <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.8 }}>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
+import NonVerbalTracker from '../components/NonVerbalTracker';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
@@ -53,6 +54,12 @@ export default function InterviewPage() {
   const [prepLeft,  setPrepLeft]  = useState(0);
   const [recLeft,   setRecLeft]   = useState<number | null>(null);
   const [errorMsg,  setErrorMsg]  = useState('');
+  const [analytics, setAnalytics] = useState<{
+    spatialDistribution: number;
+    handGestures: number;
+    eyeContact: number;
+    posture: number;
+  } | null>(null);
 
   // ── Helpers (all use refs → no stale-closure issues) ─────────────────────────
   const clearTimer = () => {
@@ -136,6 +143,17 @@ export default function InterviewPage() {
       form.append('goals', JSON.stringify(topics));
       form.append('questions', JSON.stringify(sessRef.current.questions));
       form.append('difficulty', difficulty);
+      
+      // Add analytics if available
+      if (analytics) {
+        form.append('analytics', JSON.stringify({
+          spatialDistribution: Math.round(analytics.spatialDistribution),
+          handGestures: Math.round(analytics.handGestures),
+          eyeContact: Math.round(analytics.eyeContact),
+          posture: Math.round(analytics.posture)
+        }));
+      }
+      
       answers.forEach((a, i) => form.append(`video_${i}`, a.blob, `recording_${i}.webm`));
 
       const controller = new AbortController();
@@ -213,17 +231,25 @@ export default function InterviewPage() {
       </nav>
 
       <main className="interview-main">
-        {/* Webcam box — always mounted so videoRef is set before stream arrives */}
+        {/* Webcam box with NonVerbalTracker overlay */}
         <div
           className="webcam-box"
-          style={{ display: phase === 'prep' || phase === 'recording' ? undefined : 'none' }}
+          style={{ display: phase === 'prep' || phase === 'recording' ? undefined : 'none', position: 'relative' }}
         >
+          {/* Hidden video element for stream */}
           <video
             ref={videoRef}
             muted
             playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: camActive ? 'block' : 'none' }}
+            style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', opacity: 0, pointerEvents: 'none' }}
           />
+          
+          {/* NonVerbalTracker renders its own canvas with video + landmarks */}
+          {camActive && (phase === 'prep' || phase === 'recording') && (
+            <div style={{ position: 'absolute', inset: 0 }}>
+              <NonVerbalTracker onScoresUpdate={setAnalytics} />
+            </div>
+          )}
           {!camActive && (
             <div className="webcam-off">
               <span className="webcam-off-icon">📷</span>
@@ -255,6 +281,26 @@ export default function InterviewPage() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
               REC
               {recLeft !== null && <span>{fmtTime(recLeft)}</span>}
+            </div>
+          )}
+
+          {/* Live Analytics Scores */}
+          {phase === 'recording' && analytics && (
+            <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: '200px' }}>
+              {[
+                { label: '📏', value: analytics.spatialDistribution, title: 'Spatial' },
+                { label: '👋', value: analytics.handGestures, title: 'Gestures' },
+                { label: '👁️', value: analytics.eyeContact, title: 'Eye Contact' },
+                { label: '🧍', value: analytics.posture, title: 'Posture' }
+              ].map(({ label, value, title }) => {
+                const color = value >= 80 ? '#4caf50' : value >= 60 ? '#ff9800' : '#f44336';
+                return (
+                  <div key={title} style={{ background: 'rgba(0,0,0,0.6)', borderRadius: 6, padding: '4px 8px', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, border: `1px solid ${color}` }} title={title}>
+                    <span>{label}</span>
+                    <span style={{ color }}>{Math.round(value)}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
