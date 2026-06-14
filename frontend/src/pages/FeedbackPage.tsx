@@ -90,8 +90,9 @@ export default function FeedbackPage() {
                 </div>
                 {r.videoUrl && (
                   <a href={r.videoUrl} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'underline', display: 'inline-block' }}>
-                    🎬 View recording
+                    className="btn-proceed"
+                    style={{ fontSize: 11, padding: '5px 14px', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: '#fff', textDecoration: 'none' }}>
+                    View recording
                   </a>
                 )}
               </div>
@@ -107,7 +108,6 @@ export default function FeedbackPage() {
           {topics.length > 0 && (
             <button
               className="btn-proceed"
-              style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', color: '#FFD700' }}
               onClick={() => setShowJobs(true)}
             >
               Find Relevant Jobs
