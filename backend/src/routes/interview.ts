@@ -209,7 +209,7 @@ router.post('/submit-batch', batchFields, async (req: Request, res: Response) =>
       );
       const feedback = geminiResult.response.text();
       const overallScore = extractScore(feedback);
-      const session = await Session.create({ userId, videoUrl, transcript, feedback, goals, overallScore });
+      const session = await Session.create({ userId, question, videoUrl, transcript, feedback, goals, overallScore });
 
       return { sessionId: session._id, question, transcript, feedback, videoUrl, overallScore };
     } finally {

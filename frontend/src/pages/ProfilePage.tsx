@@ -9,6 +9,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 interface SessionData {
   _id: string;
+  question: string;
   goals: string[];
   feedback: string;
   transcript: string;
@@ -66,6 +67,22 @@ export default function ProfilePage() {
   };
 
   useEffect(() => { fetchProfile(); }, []);
+
+  const openSession = (s: SessionData) => {
+    navigate('/feedback', {
+      state: {
+        results: [{
+          sessionId: s._id,
+          question: s.question ?? '',
+          transcript: s.transcript,
+          feedback: s.feedback,
+          videoUrl: s.videoUrl,
+        }],
+        topics: s.goals,
+        difficulty: '',
+      },
+    });
+  };
 
   const saveLocation = async (value: string) => {
     setSavingLocation(true);
@@ -131,7 +148,7 @@ export default function ProfilePage() {
         <Logo />
         <button
           className="btn-proceed"
-          style={{ fontSize: 12, padding: '6px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.55)' }}
+          style={{ fontSize: 12, padding: '7px 18px', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: '#fff' }}
           onClick={() => navigate('/stats')}
         >
           Stats
@@ -273,7 +290,12 @@ export default function ProfilePage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {sessions.map(s => (
-                <div key={s._id} className="session-card">
+                <div
+                  key={s._id}
+                  className="session-card"
+                  onClick={() => openSession(s)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       {s.goals.map(g => (
@@ -307,7 +329,7 @@ export default function ProfilePage() {
                       <button
                         className="btn-proceed"
                         style={{ fontSize: 11, padding: '5px 12px', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)', color: '#FFD700' }}
-                        onClick={() => setJobTopics(s.goals)}
+                        onClick={e => { e.stopPropagation(); setJobTopics(s.goals); }}
                       >
                         Find Jobs
                       </button>
@@ -317,7 +339,9 @@ export default function ProfilePage() {
                         href={s.videoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textDecoration: 'underline' }}
+                        className="btn-proceed"
+                        style={{ fontSize: 11, padding: '5px 14px', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: '#fff', textDecoration: 'none' }}
+                        onClick={e => e.stopPropagation()}
                       >
                         View recording
                       </a>

@@ -2,6 +2,7 @@ import { Schema, model, models, Document, Types } from 'mongoose';
 
 export interface ISession extends Document {
   userId: Types.ObjectId;
+  question: string;
   videoUrl: string;
   transcript: string;
   feedback: string;
@@ -14,6 +15,7 @@ export interface ISession extends Document {
 const SessionSchema = new Schema<ISession>(
   {
     userId:       { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    question:     { type: String, default: '' },
     videoUrl:     { type: String, required: true },
     transcript:   { type: String, default: '' },
     feedback:     { type: String, default: '' },
