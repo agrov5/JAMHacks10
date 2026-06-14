@@ -29,7 +29,7 @@ export default function WelcomePage() {
 
   return (
     <div className="welcome-page">
-      <nav>
+      <nav className="page-nav">
         <Logo />
       </nav>
 
