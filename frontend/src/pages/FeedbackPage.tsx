@@ -91,7 +91,7 @@ export default function FeedbackPage() {
                 {r.videoUrl && (
                   <a href={r.videoUrl} target="_blank" rel="noreferrer"
                     className="btn-proceed"
-                    style={{ fontSize: 11, padding: '5px 14px', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: '#fff', textDecoration: 'none' }}>
+                    style={{ fontSize: 11, padding: '5px 14px', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: '#fff', textDecoration: 'none', alignSelf: 'flex-start' }}>
                     View recording
                   </a>
                 )}
