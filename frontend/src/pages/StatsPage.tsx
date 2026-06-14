@@ -169,17 +169,19 @@ export default function StatsPage() {
                     dataKey="score"
                     stroke="#fff"
                     strokeWidth={2}
-                    dot={({ cx, cy, payload }: { cx: number; cy: number; payload: typeof chartData[0] }) => (
-                      <circle
-                        key={`dot-${cx}-${cy}`}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill={scoreColor(payload.score)}
-                        stroke="#0a0a0a"
-                        strokeWidth={2}
-                      />
-                    )}
+                    dot={({ cx, cy, payload }: { cx?: number; cy?: number; payload?: typeof chartData[0] }) =>
+                      cx != null && cy != null && payload != null ? (
+                        <circle
+                          key={`dot-${cx}-${cy}`}
+                          cx={cx}
+                          cy={cy}
+                          r={4}
+                          fill={scoreColor(payload.score)}
+                          stroke="#0a0a0a"
+                          strokeWidth={2}
+                        />
+                      ) : <g />
+                    }
                     activeDot={{ r: 5, fill: '#fff', stroke: '#0a0a0a', strokeWidth: 2 }}
                   />
                 </LineChart>
