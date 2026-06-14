@@ -327,7 +327,7 @@ body {
 .page-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 /* ── Topics Page ── */
@@ -394,7 +394,6 @@ body {
   display: flex;
   justify-content: flex-end;
   padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 /* ── Next Steps Page ── */

@@ -37,7 +37,7 @@ export default function FeedbackPage() {
     <div className="steps-page">
       <nav className="page-nav">
         <Logo />
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', gap: 6 }}>
           {difficulty && (
             <span style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: '3px 10px', fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
               {difficulty}

@@ -234,7 +234,7 @@ export default function ProfilePage() {
               )}
               <button
                 className="btn-proceed"
-                style={{ fontSize: 12, padding: '6px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.45)' }}
+          style={{ fontSize: 12, padding: '8px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
               >
